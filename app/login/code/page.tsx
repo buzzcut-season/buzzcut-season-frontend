@@ -41,7 +41,7 @@ export default function CodePage() {
 
             localStorage.setItem("accessToken", json.accessToken);
 
-            window.location.href = "/";
+            window.location.href = "/product-feed";
         } catch (err: any) {
             setError(String(err));
         } finally {
