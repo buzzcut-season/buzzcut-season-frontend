@@ -18,8 +18,9 @@ export default function HomePage() {
 
     async function load() {
       try {
+        const API_URL = process.env.NEXT_PUBLIC_BUZZCUT_SEASON_API;
         const res = await fetch(
-          "http://localhost:8600/api/v1/product-feed?page=1&size=10",
+          `${API_URL}/product-feed?page=1&size=10`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
