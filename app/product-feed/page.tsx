@@ -1,47 +1,75 @@
-export default async function HomePage() {
-  const url = `http://localhost:8600/api/v1/product-feed?page=1&size=10`;
+"use client";
 
-  let response: Response | null = null;
-  let error: any = null;
-  let body: any = null;
+import { useEffect, useState } from "react";
 
-  try {
-    response = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJVU0VSIl0sInN1YiI6InN0ZXA2MTk5QGdtYWlsLmNvbSIsImlhdCI6MTc2NDQ0MTM3NiwiZXhwIjoxNzY0NDk4OTc2fQ.GQWY03LnGk2330ifq-YJWmcQldVlQD-usR3OtCgm0po",
-      },
-    });
+export default function HomePage() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const text = await response.text();
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = text;
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      setError("You are not logged in");
+      setLoading(false);
+      return;
     }
-  } catch (e) {
-    error = e;
+
+    async function load() {
+      try {
+        const res = await fetch(
+          "http://localhost:8600/api/v1/product-feed?page=1&size=10",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const text = await res.text();
+        let body;
+
+        try {
+          body = JSON.parse(text);
+        } catch {
+          body = text;
+        }
+
+        if (!res.ok) {
+          setError(`API error ${res.status}: ${JSON.stringify(body)}`);
+          return;
+        }
+
+        setData(body);
+      } catch (err: any) {
+        setError(String(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <main style={{ padding: 40, fontFamily: "sans-serif" }}>
+        <h1>Loading…</h1>
+      </main>
+    );
   }
 
   if (error) {
     return (
       <main style={{ padding: 40, fontFamily: "sans-serif" }}>
-        <h1 style={{ color: "#c00" }}>Fetch Error</h1>
-        <pre>{String(error)}</pre>
+        <h1 style={{ color: "red" }}>Error</h1>
+        <pre>{error}</pre>
       </main>
     );
   }
 
-  if (response && !response.ok) {
-    return (
-      <main style={{ padding: 40, fontFamily: "sans-serif" }}>
-        <h1 style={{ color: "#c00" }}>API Error</h1>
-        <p>Status: {response.status}</p>
-        <pre>{JSON.stringify(body, null, 2)}</pre>
-      </main>
-    );
-  }
+  const body = data;
 
   return (
     <main
@@ -73,7 +101,6 @@ export default async function HomePage() {
         Page: {body.page}
       </p>
 
-      {/* GRID */}
       <div
         style={{
           display: "grid",
@@ -102,7 +129,7 @@ export default async function HomePage() {
                   height: 180,
                   objectFit: "cover",
                   borderRadius: 8,
-                  marginBottom: 12
+                  marginBottom: 12,
                 }}
               />
             ) : (
@@ -122,7 +149,7 @@ export default async function HomePage() {
                 fontSize: 20,
                 marginBottom: 8,
                 fontWeight: 600,
-                 color: "#FF0000",
+                color: "#FF0000",
               }}
             >
               {item.name}
@@ -139,7 +166,6 @@ export default async function HomePage() {
               {item.priceSubunits} {item.currency}
             </div>
 
-            {/* КНОПКА БЕЗ JS-хендлеров (используем CSS-ховер через inline) */}
             <a
               href="#"
               style={{
@@ -154,17 +180,9 @@ export default async function HomePage() {
                 transition: "background 0.2s",
                 display: "block",
               }}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
             >
               View product
             </a>
-
-            <style>{`
-              a:hover {
-                background: #333 !important;
-              }
-            `}</style>
           </div>
         ))}
       </div>
