@@ -7,9 +7,15 @@ import { AuthModal } from "@/components/AuthModal";
 import { ProductCard } from "@/components/ProductCard";
 import { asErrorMessage, getProductFeed } from "@/lib/api";
 import type { ProductFeedItem } from "@/lib/types";
+import { readAuth } from "@/lib/storage";
 
 export default function Page() {
   const [authOpen, setAuthOpen] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  function refreshAuth() {
+    setIsAuthed(!!readAuth()?.accessToken);
+  }
 
   const [items, setItems] = useState<ProductFeedItem[]>([]);
   const [page, setPage] = useState(0);
@@ -20,6 +26,16 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
 
   const canLoadMore = useMemo(() => items.length > 0, [items.length]);
+
+  useEffect(() => {
+    refreshAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthed && authOpen) {
+      setAuthOpen(false);
+    }
+  }, [isAuthed, authOpen]);
 
   async function load(p: number, mode: "replace" | "append") {
     try {
@@ -51,9 +67,8 @@ export default function Page() {
     <main className="min-h-screen pb-16">
       <Header
         onOpenAuth={() => setAuthOpen(true)}
-        onAuthChanged={() => {
-          // можно обновлять ленту после логина/логаута
-        }}
+        onAuthChanged={refreshAuth}
+        isAuthed={isAuthed}
       />
 
       <section className="mx-auto max-w-6xl px-4 mt-6">
@@ -68,6 +83,30 @@ export default function Page() {
         )}
 
         <div className="mt-6">
+          {!isAuthed && (
+            <div className="mb-6 card p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-sm font-medium text-zinc-200">
+                  Войди, чтобы продолжить
+                </div>
+                <div className="text-xs text-zinc-400 mt-1">
+                  Авторизация по email — займёт меньше минуты
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (!isAuthed) {
+                    setAuthOpen(true);
+                  }
+                }}
+              >
+                Войти
+              </button>
+            </div>
+          )}
+
           {loading ? (
             <div className="card p-10 grid place-items-center">
               <div className="flex items-center gap-2 text-zinc-300">
@@ -112,9 +151,7 @@ export default function Page() {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        onAuthChanged={() => {
-          // placeholder for future behavior
-        }}
+        onAuthChanged={refreshAuth}
       />
     </main>
   );

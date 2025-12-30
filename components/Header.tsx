@@ -8,9 +8,11 @@ import { clearAuth, readAuth } from "@/lib/storage";
 export function Header({
   onOpenAuth,
   onAuthChanged,
+  isAuthed,
 }: {
   onOpenAuth: () => void;
   onAuthChanged: () => void;
+  isAuthed: boolean;
 }) {
   const [checking, setChecking] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -35,6 +37,18 @@ export function Header({
             Ты солнышко
           </div>
         </div>
+
+        {!isAuthed ? (
+          <button className="btn btn-primary" onClick={onOpenAuth}>
+            <LogIn className="h-4 w-4" />
+            Войти
+          </button>
+        ) : (
+          <button className="btn btn-primary" onClick={logout}>
+            <LogOut className="h-4 w-4" />
+            Выйти
+          </button>
+        )}
       </div>
     </header>
   );

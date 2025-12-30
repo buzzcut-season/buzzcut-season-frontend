@@ -141,16 +141,6 @@ export function AuthModal({
               </div>
             </div>
           )}
-
-          {step === "done" && (
-            <div className="card p-4 border-emerald-500/20 bg-emerald-500/5">
-              <div className="text-sm font-medium">Ты уже авторизован(а).</div>
-              <div className="text-xs text-zinc-400 mt-1">Можешь закрыть это окно.</div>
-              <button className="btn btn-primary mt-3 w-full" onClick={onClose}>
-                Ок
-              </button>
-            </div>
-          )}
         </div>
       </Modal>
 
