@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Buzzcut Marketplace (Next.js)
 
-## Getting Started
+Красивый минималистичный фронт для маркетплейса с:
+- product feed (лента товаров)
+- модалкой авторизации по email+код
+- хранением токенов в localStorage
+- приятной розово‑фиолетовой темой на чёрном
 
-First, run the development server:
+## Быстрый старт
 
+1) Установи зависимости:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm i
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2) Скопируй env:
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3) Запусти:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Открой: http://localhost:3000
 
-## Learn More
+## Настройка API
 
-To learn more about Next.js, take a look at the following resources:
+По умолчанию:
+- `NEXT_PUBLIC_API_BASE=https://buzzcut-season.ru`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Можно поменять в `.env.local`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Что реализовано
 
-## Deploy on Vercel
+### Проверка API
+Кнопка **API: ...** в хедере делает `GET /actuator/health` и показывает статус.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Авторизация
+- `POST /api/v1/accounts/send-code` (только email `test@buzzcut-season.ru`)
+- `POST /api/v1/accounts/authenticate` (email+code)
+- access/refresh токены сохраняются в localStorage
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Лента товаров
+- `GET /api/v1/product-feed`
+- Карточки товаров: фото, название, цена (форматируется из `priceSubunits`)
+
+## Деплой (самый простой) — Vercel
+
+1) Залей репозиторий на GitHub.
+2) Зайди на Vercel → Add New Project → Import Git Repository.
+3) В Environment Variables добавь:
+   - `NEXT_PUBLIC_API_BASE` = `https://buzzcut-season.ru`
+4) Deploy.
+
+> Если API не разрешает CORS, фронт может не увидеть ответы в браузере. Тогда можно:
+> - настроить CORS на бэке, или
+> - сделать прокси через Next.js route handlers (я могу добавить, если понадобится).
+
+## Деплой в Docker (опционально)
+
+Если хочешь, могу добавить Dockerfile + compose.

@@ -1,0 +1,165 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { Mail, ShieldCheck } from "lucide-react";
+import { Modal } from "./Modal";
+import { Toast, type ToastKind } from "./Toast";
+import { asErrorMessage, authenticate, sendCode } from "@/lib/api";
+import { readAuth, writeAuth } from "@/lib/storage";
+
+type Step = "send" | "verify" | "done";
+
+export function AuthModal({
+  open,
+  onClose,
+  onAuthChanged,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onAuthChanged: () => void;
+}) {
+  const [step, setStep] = useState<Step>("send");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  const [toast, setToast] = useState<{ open: boolean; kind: ToastKind; message: string }>({
+    open: false,
+    kind: "info",
+    message: "",
+  });
+
+  const isAuthed = useMemo(() => !!readAuth()?.accessToken, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    // reset state when opening
+    setStep(isAuthed ? "done" : "send");
+    setCode("");
+    setBusy(false);
+    setCooldown(0);
+  }, [open, isAuthed]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = window.setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => window.clearInterval(id);
+  }, [cooldown]);
+
+  async function onSendCode() {
+    setBusy(true);
+    try {
+      const res = await sendCode({ email });
+      setCooldown(res.cooldownSeconds ?? 60);
+      setStep("verify");
+      setToast({ open: true, kind: "success", message: "Код отправлен на почту. Введи его ниже." });
+    } catch (e) {
+      setToast({ open: true, kind: "error", message: asErrorMessage(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onVerify() {
+    if (!code.trim()) {
+      setToast({ open: true, kind: "error", message: "Введи код из письма." });
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await authenticate({ email, code: code.trim() });
+      writeAuth(res);
+      setStep("done");
+      onAuthChanged();
+      setToast({ open: true, kind: "success", message: "Готово! Ты авторизован(а)." });
+    } catch (e) {
+      setToast({ open: true, kind: "error", message: asErrorMessage(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <Modal open={open} title="Вход" onClose={onClose}>
+        <div className="space-y-4">
+          <label className="block card p-3 border-white/10 bg-black/20">
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4 text-pink-300" />
+              <span className="text-zinc-200">Email</span>
+            </div>
+
+            <div className="mt-2">
+              <input
+                className="input"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="mt-2 text-xs text-zinc-500">
+              Введи почту и нажми «Отправить код».
+            </div>
+          </label>
+
+
+          {step === "send" && (
+            <button className="btn btn-primary w-full" onClick={onSendCode} disabled={busy || cooldown > 0}>
+              <ShieldCheck className="h-4 w-4" />
+              {cooldown > 0 ? `Подожди ${cooldown}s` : busy ? "Отправляю..." : "Отправить код"}
+            </button>
+          )}
+
+          {step === "verify" && (
+            <div className="space-y-3">
+              <label className="block">
+                <div className="text-xs text-zinc-400 mb-1">Код из письма</div>
+                <input
+                  className="input"
+                  placeholder="например 684179"
+                  inputMode="numeric"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+              </label>
+
+              <div className="flex gap-2">
+                <button className="btn w-1/2" onClick={onSendCode} disabled={busy || cooldown > 0}>
+                  {cooldown > 0 ? `Повтор через ${cooldown}s` : "Отправить ещё раз"}
+                </button>
+                <button className="btn btn-primary w-1/2" onClick={onVerify} disabled={busy}>
+                  {busy ? "Проверяю..." : "Войти"}
+                </button>
+              </div>
+
+              <div className="text-xs text-zinc-500">
+                Если письмо не пришло — проверь спам и подожди минуту.
+              </div>
+            </div>
+          )}
+
+          {step === "done" && (
+            <div className="card p-4 border-emerald-500/20 bg-emerald-500/5">
+              <div className="text-sm font-medium">Ты уже авторизован(а).</div>
+              <div className="text-xs text-zinc-400 mt-1">Можешь закрыть это окно.</div>
+              <button className="btn btn-primary mt-3 w-full" onClick={onClose}>
+                Ок
+              </button>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      <Toast
+        open={toast.open}
+        kind={toast.kind}
+        message={toast.message}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
+    </>
+  );
+}
