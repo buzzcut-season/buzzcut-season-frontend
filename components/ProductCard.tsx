@@ -30,7 +30,7 @@ export function ProductCard({
         {item.image ? (
           <>
             <div
-              className="absolute inset-0 scale-[1.35] blur-3xl opacity-80"
+              className="absolute inset-0 scale-[1.25] blur-2xl opacity-80"
               style={{
                 backgroundImage: `url(${item.image})`,
                 backgroundSize: "cover",
@@ -44,6 +44,11 @@ export function ProductCard({
               fill
               className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 33vw"
+              style={{
+                WebkitMaskImage:
+                  "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
+                maskImage: "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
+              }}
             />
           </>
         ) : (
