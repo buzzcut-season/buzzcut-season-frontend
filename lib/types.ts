@@ -24,6 +24,15 @@ export type AuthenticateResponse = {
   isNewAccount: boolean;
 };
 
+export type RefreshTokenRequest = {
+  refreshToken: string;
+};
+
+export type RefreshTokenResponse = {
+  accessToken: string;
+  expiresAt: string;
+};
+
 export type ProductFeedItem = {
   id: number;
   name: string;

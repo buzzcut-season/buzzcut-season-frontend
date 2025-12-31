@@ -3,9 +3,12 @@ import type {
   AuthenticateResponse,
   HealthResponse,
   ProductFeedResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   SendCodeRequest,
   SendCodeResponse,
 } from "./types";
+import { clearAuth, readAuth, updateAuthAccessToken } from "./storage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
@@ -25,16 +28,60 @@ function asErrorMessage(err: unknown): string {
   }
 }
 
+const REFRESH_PATH = "/api/v1/accounts/refresh";
+
+function buildHeaders(init?: RequestInit, accessToken?: string): Headers {
+  const headers = new Headers(init?.headers ?? {});
+  if (!headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+  return headers;
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  const auth = readAuth();
+  if (!auth?.refreshToken) return null;
+
+  const body: RefreshTokenRequest = { refreshToken: auth.refreshToken };
+  const res = await fetch(`${getApiBase()}${REFRESH_PATH}`, {
+    method: "POST",
+    headers: buildHeaders(),
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as RefreshTokenResponse;
+  const updated = updateAuthAccessToken(data);
+  return updated?.accessToken ?? null;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const auth = readAuth();
   const res = await fetch(`${getApiBase()}${path}`, {
     ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(init?.headers ?? {}),
-    },
+    headers: buildHeaders(init, auth?.accessToken),
   });
 
   if (!res.ok) {
+    if ((res.status === 401 || res.status === 403) && path !== REFRESH_PATH) {
+      const nextAccessToken = await refreshAccessToken();
+      if (nextAccessToken) {
+        const retryRes = await fetch(`${getApiBase()}${path}`, {
+          ...init,
+          headers: buildHeaders(init, nextAccessToken),
+        });
+        if (retryRes.ok) {
+          return (await retryRes.json()) as T;
+        }
+        const retryText = await retryRes.text().catch(() => "");
+        throw new Error(`HTTP ${retryRes.status}: ${retryText || retryRes.statusText}`);
+      }
+      clearAuth();
+    }
     const text = await res.text().catch(() => "");
     throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
   }
