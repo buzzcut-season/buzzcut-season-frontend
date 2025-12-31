@@ -30,18 +30,19 @@ export function ProductCard({
         {item.image ? (
           <>
             <div
-              className="absolute inset-0 scale-[1.25] blur-2xl opacity-70"
+              className="absolute inset-0 scale-[1.15] blur-xl opacity-50"
               style={{
                 backgroundImage: `url(${item.image})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 WebkitMaskImage:
-                  "radial-gradient(85% 85% at 50% 50%, #000 0%, #000 55%, transparent 100%)",
+                  "radial-gradient(85% 85% at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
                 maskImage:
-                  "radial-gradient(85% 85% at 50% 50%, #000 0%, #000 55%, transparent 100%)",
+                  "radial-gradient(85% 85% at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
               }}
               aria-hidden
             />
+
             <div
               className="absolute inset-0"
               style={{
@@ -50,17 +51,18 @@ export function ProductCard({
               }}
               aria-hidden
             />
+
             <Image
               src={item.image}
               alt={item.name}
               fill
-              className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-contain scale-[1.01] transition-transform duration-500 group-hover:scale-[1.03]"
               style={{
                 WebkitMaskImage:
-                  "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
+                  "radial-gradient(80% 80% at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.85) 75%, rgba(0,0,0,0) 100%)",
                 maskImage:
-                  "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
+                  "radial-gradient(80% 80% at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.85) 75%, rgba(0,0,0,0) 100%)",
               }}
             />
           </>
@@ -72,14 +74,14 @@ export function ProductCard({
       </div>
 
       <div className="p-5">
-        <div className="font-semibold leading-snug line-clamp-2">{item.name}</div>
+        <div className="font-semibold leading-snug line-clamp-2">
+          {item.name}
+        </div>
         <div className="mt-3 flex items-end justify-between gap-3">
           <div className="text-[var(--ink)] font-semibold">
             {formatMoney(priceSubunits, priceCurrency)}
           </div>
-          <button className="btn btn-primary">
-            Купить
-          </button>
+          <button className="btn btn-primary">Купить</button>
         </div>
       </div>
     </div>
