@@ -43,7 +43,7 @@ export function Header({
     <header className="mx-auto max-w-6xl px-4 pt-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="text-2xl font-semibold tracking-tight">
+          <div className="text-3xl font-semibold tracking-tight">
             Buzzcut Season <span className="text-pink-400">Marketplace</span>
           </div>
           <div className="text-sm text-[var(--muted)] mt-1">
