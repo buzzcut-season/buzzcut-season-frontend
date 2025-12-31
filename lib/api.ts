@@ -7,7 +7,14 @@ import type {
   SendCodeResponse,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://buzzcut-season.ru";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
+function getApiBase(): string {
+  if (!API_BASE) {
+    throw new Error("NEXT_PUBLIC_API_BASE is not set");
+  }
+  return API_BASE;
+}
 
 function asErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
@@ -19,7 +26,7 @@ function asErrorMessage(err: unknown): string {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${getApiBase()}${path}`, {
     ...init,
     headers: {
       "content-type": "application/json",
