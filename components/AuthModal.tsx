@@ -82,7 +82,18 @@ export function AuthModal({
   return (
     <>
       <Modal open={open} title="Вход" onClose={onClose}>
-        <div className="space-y-4">
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (busy) return;
+            if (step === "send") {
+              void onSendCode();
+            } else if (step === "verify") {
+              void onVerify();
+            }
+          }}
+        >
           <label className="block card p-3">
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-[var(--accent)]" />
@@ -107,7 +118,7 @@ export function AuthModal({
 
 
           {step === "send" && (
-            <button className="btn btn-primary w-full" onClick={onSendCode} disabled={busy || cooldown > 0}>
+            <button className="btn btn-primary w-full" type="submit" disabled={busy || cooldown > 0}>
               <ShieldCheck className="h-4 w-4" />
               {cooldown > 0 ? `Подожди ${cooldown}s` : busy ? "Отправляю..." : "Отправить код"}
             </button>
@@ -127,10 +138,10 @@ export function AuthModal({
               </label>
 
               <div className="flex gap-2">
-                <button className="btn w-1/2" onClick={onSendCode} disabled={busy || cooldown > 0}>
+                <button className="btn w-1/2" type="button" onClick={onSendCode} disabled={busy || cooldown > 0}>
                   {cooldown > 0 ? `Повтор через ${cooldown}s` : "Отправить ещё раз"}
                 </button>
-                <button className="btn btn-primary w-1/2" onClick={onVerify} disabled={busy}>
+                <button className="btn btn-primary w-1/2" type="submit" disabled={busy}>
                   {busy ? "Проверяю..." : "Войти"}
                 </button>
               </div>
@@ -140,7 +151,7 @@ export function AuthModal({
               </div>
             </div>
           )}
-        </div>
+        </form>
       </Modal>
 
       <Toast

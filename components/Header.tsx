@@ -90,7 +90,7 @@ export function Header({
               </button>
               {menuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-48 rounded-2xl border border-black/10 bg-white/95 shadow-[0_16px_30px_rgba(31,26,22,0.12)] p-2 text-sm"
+                  className="absolute right-0 mt-2 w-48 rounded-2xl border border-black/10 bg-white/95 text-zinc-900 shadow-[0_16px_30px_rgba(31,26,22,0.12)] p-2 text-sm z-50"
                   role="menu"
                 >
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
@@ -103,7 +103,7 @@ export function Header({
                     Избранное
                   </button>
                   <button
-                    className="w-full rounded-xl px-3 py-2 text-left text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                    className="w-full rounded-xl px-3 py-2 text-left text-pink-600 hover:bg-pink-500/10"
                     role="menuitem"
                     onClick={logout}
                   >
