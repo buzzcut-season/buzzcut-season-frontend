@@ -38,6 +38,14 @@ export function ProductCard({
               }}
               aria-hidden
             />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(80% 80% at 50% 50%, rgba(8,6,12,0.0) 0%, rgba(8,6,12,0.45) 72%, rgba(8,6,12,0.85) 100%)",
+              }}
+              aria-hidden
+            />
             <Image
               src={item.image}
               alt={item.name}
