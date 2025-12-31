@@ -26,15 +26,26 @@ export function ProductCard({
 
   return (
     <div className="card overflow-hidden group">
-      <div className="relative aspect-[4/3] bg-black/5">
+      <div className="relative aspect-[4/3] bg-black/5 overflow-hidden">
         {item.image ? (
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
+          <>
+            <div
+              className="absolute inset-0 scale-110 blur-2xl opacity-60"
+              style={{
+                backgroundImage: `url(${item.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              aria-hidden
+            />
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+          </>
         ) : (
           <div className="absolute inset-0 grid place-items-center text-[var(--muted)] text-sm">
             no image
