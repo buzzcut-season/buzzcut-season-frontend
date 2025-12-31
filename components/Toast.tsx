@@ -39,7 +39,7 @@ export function Toast({
         role="status"
         aria-live="polite"
       >
-        <div className="flex-1 text-sm text-zinc-100">{message}</div>
+        <div className="flex-1 text-sm text-[var(--ink)]">{message}</div>
         <button className="btn h-8 w-8 p-0" onClick={onClose} aria-label="Close">
           <X className="h-4 w-4" />
         </button>

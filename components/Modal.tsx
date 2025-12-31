@@ -28,7 +28,7 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-40">
       <button
-        className="absolute inset-0 bg-black/70"
+        className="absolute inset-0 bg-black/30"
         aria-label="Close modal overlay"
         onClick={onClose}
       />
@@ -37,8 +37,8 @@ export function Modal({
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-lg font-semibold">{title}</div>
-              <div className="text-xs text-zinc-400 mt-1">
-                Email-code auth (тестовый аккаунт)
+              <div className="text-xs text-[var(--muted)] mt-1">
+                Вход по коду из письма
               </div>
             </div>
             <button className="btn h-9 w-9 p-0" onClick={onClose} aria-label="Close">

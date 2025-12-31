@@ -25,7 +25,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       "content-type": "application/json",
       ...(init?.headers ?? {}),
     },
-    // Важно: если бэк использует cookies, нужно будет: credentials: "include"
   });
 
   if (!res.ok) {
@@ -58,7 +57,6 @@ export async function getProductFeed(params?: { page?: number; size?: number }):
   const page = params?.page ?? 0;
   const size = params?.size ?? 24;
   const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
-  // Если бэк не поддерживает query params — всё равно ок, он их проигнорит.
   return request<ProductFeedResponse>(`/api/v1/product-feed?${qs}`, { method: "GET" });
 }
 

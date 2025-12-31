@@ -34,7 +34,6 @@ export function AuthModal({
 
   useEffect(() => {
     if (!open) return;
-    // reset state when opening
     setStep(isAuthed ? "done" : "send");
     setCode("");
     setBusy(false);
@@ -84,10 +83,10 @@ export function AuthModal({
     <>
       <Modal open={open} title="Вход" onClose={onClose}>
         <div className="space-y-4">
-          <label className="block card p-3 border-white/10 bg-black/20">
+          <label className="block card p-3">
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4 text-pink-300" />
-              <span className="text-zinc-200">Email</span>
+              <Mail className="h-4 w-4 text-[var(--accent)]" />
+              <span className="text-[var(--ink)]">Email</span>
             </div>
 
             <div className="mt-2">
@@ -101,7 +100,7 @@ export function AuthModal({
               />
             </div>
 
-            <div className="mt-2 text-xs text-zinc-500">
+            <div className="mt-2 text-xs text-[var(--muted)]">
               Введи почту и нажми «Отправить код».
             </div>
           </label>
@@ -117,7 +116,7 @@ export function AuthModal({
           {step === "verify" && (
             <div className="space-y-3">
               <label className="block">
-                <div className="text-xs text-zinc-400 mb-1">Код из письма</div>
+                <div className="text-xs text-[var(--muted)] mb-1">Код из письма</div>
                 <input
                   className="input"
                   placeholder="например 684179"
@@ -136,7 +135,7 @@ export function AuthModal({
                 </button>
               </div>
 
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-[var(--muted)]">
                 Если письмо не пришло — проверь спам и подожди минуту.
               </div>
             </div>

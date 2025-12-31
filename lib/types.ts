@@ -30,6 +30,7 @@ export type ProductFeedItem = {
   priceSubunits: number;
   currency: string;
   image: string;
+  prices?: Record<string, number>;
 };
 
 export type ProductFeedResponse = {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
 import { ProductCard } from "@/components/ProductCard";
@@ -12,10 +12,11 @@ import { readAuth } from "@/lib/storage";
 export default function Page() {
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
 
-  function refreshAuth() {
+  const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
-  }
+  }, []);
 
   const [items, setItems] = useState<ProductFeedItem[]>([]);
   const [page, setPage] = useState(0);
@@ -25,7 +26,7 @@ export default function Page() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canLoadMore = useMemo(() => items.length > 0, [items.length]);
+  const canLoadMore = items.length > 0;
 
   useEffect(() => {
     refreshAuth();
@@ -37,7 +38,7 @@ export default function Page() {
     }
   }, [isAuthed, authOpen]);
 
-  async function load(p: number, mode: "replace" | "append") {
+  const load = useCallback(async (p: number, mode: "replace" | "append") => {
     try {
       if (mode === "replace") {
         setLoading(true);
@@ -56,12 +57,11 @@ export default function Page() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }
+  }, [size]);
 
   useEffect(() => {
     load(0, "replace");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
   return (
     <main className="min-h-screen pb-16">
@@ -69,56 +69,47 @@ export default function Page() {
         onOpenAuth={() => setAuthOpen(true)}
         onAuthChanged={refreshAuth}
         isAuthed={isAuthed}
+        currency={currency}
+        onCurrencyChange={setCurrency}
       />
 
-      <section className="mx-auto max-w-6xl px-4 mt-6">
+      <section className="mx-auto max-w-7xl px-4 mt-6">
         {error && (
           <div className="mt-4 card p-4 border-red-500/25 bg-red-500/5">
-            <div className="text-sm font-medium text-red-200">Ошибка</div>
-            <div className="text-xs text-zinc-300 mt-1 break-words">{error}</div>
-            <div className="text-xs text-zinc-500 mt-2">
-              Если ошибка похожа на CORS — это ограничения браузера. Тогда нужно включить CORS на API или сделать прокси через Next.
-            </div>
+            <div className="text-sm font-medium text-red-700">Ошибка</div>
+            <div className="text-xs text-red-700/80 mt-1 break-words">{error}</div>
           </div>
         )}
 
         <div className="mt-6">
-          {!isAuthed && (
-            <div className="mb-6 card p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-sm font-medium text-zinc-200">
-                  Войди, чтобы продолжить
-                </div>
-                <div className="text-xs text-zinc-400 mt-1">
-                  Авторизация по email — займёт меньше минуты
-                </div>
+          <div className="card p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold">Каталоги</div>
+              <div className="text-xs text-[var(--muted)] mt-1">
+                Скоро здесь появятся подборки по темам и авторским коллекциям
               </div>
-
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  if (!isAuthed) {
-                    setAuthOpen(true);
-                  }
-                }}
-              >
-                Войти
-              </button>
             </div>
-          )}
+            <div className="flex flex-wrap gap-2">
+              {["3D", "Музыка", "Видео", "Шрифты", "Обучение"].map((label) => (
+                <span key={label} className="badge">
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
 
           {loading ? (
             <div className="card p-10 grid place-items-center">
-              <div className="flex items-center gap-2 text-zinc-300">
+              <div className="flex items-center gap-2 text-[var(--muted)]">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Загружаю товары...
               </div>
             </div>
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {items.map((it) => (
-                  <ProductCard key={it.id} item={it} />
+                  <ProductCard key={it.id} item={it} currency={currency} />
                 ))}
               </div>
 
@@ -138,10 +129,6 @@ export default function Page() {
                     "Загрузить ещё"
                   )}
                 </button>
-              </div>
-
-              <div className="mt-3 text-center text-xs text-zinc-500">
-                page={page}, size={size}
               </div>
             </>
           )}
