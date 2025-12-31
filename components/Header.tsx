@@ -47,7 +47,7 @@ export function Header({
             Buzzcut Season <span className="text-pink-400">Marketplace</span>
           </div>
           <div className="text-sm text-[var(--muted)] mt-1">
-            A marketplace for the chosen few, by ancient right
+            Marketplace for the chosen few, by ancient right
           </div>
         </div>
 
