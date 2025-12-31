@@ -40,8 +40,8 @@ export function Header({
   }
 
   return (
-    <header className="mx-auto max-w-6xl px-4 pt-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <header className="mx-auto max-w-7xl px-4 pt-10">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="text-3xl font-semibold tracking-tight">
             Buzzcut Season <span className="text-pink-400">Marketplace</span>

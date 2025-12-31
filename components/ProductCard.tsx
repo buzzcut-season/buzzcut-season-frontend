@@ -42,9 +42,9 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-5">
         <div className="font-semibold leading-snug line-clamp-2">{item.name}</div>
-        <div className="mt-2 flex items-end justify-between gap-3">
+        <div className="mt-3 flex items-end justify-between gap-3">
           <div className="text-[var(--ink)] font-semibold">
             {formatMoney(priceSubunits, priceCurrency)}
           </div>

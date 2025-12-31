@@ -73,7 +73,7 @@ export default function Page() {
         onCurrencyChange={setCurrency}
       />
 
-      <section className="mx-auto max-w-7xl px-4 mt-6">
+      <section className="mx-auto max-w-7xl px-4 mt-8">
         {error && (
           <div className="mt-4 card p-4 border-red-500/25 bg-red-500/5">
             <div className="text-sm font-medium text-red-700">Ошибка</div>
@@ -82,7 +82,7 @@ export default function Page() {
         )}
 
         <div className="mt-6">
-          <div className="card p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="card p-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm font-semibold">Каталоги</div>
               <div className="text-xs text-[var(--muted)] mt-1">
@@ -107,13 +107,13 @@ export default function Page() {
             </div>
           ) : (
             <>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 {items.map((it) => (
                   <ProductCard key={it.id} item={it} currency={currency} />
                 ))}
               </div>
 
-              <div className="mt-6 flex justify-center">
+              <div className="mt-8 flex justify-center">
                 <button
                   className="btn btn-primary"
                   onClick={() => load(page + 1, "append")}
