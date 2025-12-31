@@ -26,20 +26,44 @@ export function ProductCard({
 
   return (
     <div className="card overflow-hidden group">
-      <div
-        className="relative aspect-[4/3] overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #ffffff 0%, #f3f6fb 45%, #e7f0ff 100%)",
-        }}
-      >
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#0b0a10]">
         {item.image ? (
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
+          <>
+            <div
+              className="absolute inset-0 scale-[1.25] blur-2xl opacity-70"
+              style={{
+                backgroundImage: `url(${item.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                WebkitMaskImage:
+                  "radial-gradient(85% 85% at 50% 50%, #000 0%, #000 55%, transparent 100%)",
+                maskImage:
+                  "radial-gradient(85% 85% at 50% 50%, #000 0%, #000 55%, transparent 100%)",
+              }}
+              aria-hidden
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(90% 90% at 50% 50%, rgba(11,10,16,0) 0%, rgba(11,10,16,0.55) 70%, rgba(11,10,16,0.95) 100%)",
+              }}
+              aria-hidden
+            />
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              sizes="(max-width: 768px) 100vw, 33vw"
+              style={{
+                WebkitMaskImage:
+                  "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
+                maskImage:
+                  "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
+              }}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 grid place-items-center text-[var(--muted)] text-sm">
             no image
