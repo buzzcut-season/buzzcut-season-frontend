@@ -47,7 +47,7 @@ export function Header({
             Buzzcut Season <span className="text-pink-400">Marketplace</span>
           </div>
           <div className="text-sm text-[var(--muted)] mt-1">
-            Маркетплейс цифровых товаров и сервисов
+            Маркетплейс для избранных
           </div>
         </div>
 
