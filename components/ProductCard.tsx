@@ -30,19 +30,11 @@ export function ProductCard({
         {item.image ? (
           <>
             <div
-              className="absolute inset-0 scale-110 blur-2xl opacity-60"
+              className="absolute inset-0 scale-[1.35] blur-3xl opacity-80"
               style={{
                 backgroundImage: `url(${item.image})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-              }}
-              aria-hidden
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(80% 80% at 50% 50%, rgba(8,6,12,0.0) 0%, rgba(8,6,12,0.45) 72%, rgba(8,6,12,0.85) 100%)",
               }}
               aria-hidden
             />
