@@ -26,31 +26,20 @@ export function ProductCard({
 
   return (
     <div className="card overflow-hidden group">
-      <div className="relative aspect-[4/3] bg-black/5 overflow-hidden">
+      <div
+        className="relative aspect-[4/3] overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #ffffff 0%, #f3f6fb 45%, #e7f0ff 100%)",
+        }}
+      >
         {item.image ? (
-          <>
-            <div
-              className="absolute inset-0 scale-[1.25] blur-2xl opacity-80"
-              style={{
-                backgroundImage: `url(${item.image})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-              aria-hidden
-            />
-            <Image
-              src={item.image}
-              alt={item.name}
-              fill
-              className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              sizes="(max-width: 768px) 100vw, 33vw"
-              style={{
-                WebkitMaskImage:
-                  "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
-                maskImage: "radial-gradient(80% 80% at 50% 50%, #000 70%, transparent 100%)",
-              }}
-            />
-          </>
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
         ) : (
           <div className="absolute inset-0 grid place-items-center text-[var(--muted)] text-sm">
             no image
