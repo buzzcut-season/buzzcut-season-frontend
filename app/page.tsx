@@ -84,13 +84,19 @@ export default function Page() {
         <div className="mt-6">
           <div className="card p-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-sm font-semibold">Каталоги</div>
+              <div className="text-sm font-semibold">Каталог</div>
               <div className="text-xs text-[var(--muted)] mt-1">
-                Скоро здесь появятся подборки по темам и авторским коллекциям
+                Скоро здесь появятся тематические подборки
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {["3D", "Музыка", "Видео", "Шрифты", "Обучение"].map((label) => (
+              {[
+                "Игры и игровые сервисы",
+                "Игровые ценности",
+                "Мобильные игры",
+                "Сервисы и соцсети",
+                "Программы",
+              ].map((label) => (
                 <span key={label} className="badge">
                   {label}
                 </span>
