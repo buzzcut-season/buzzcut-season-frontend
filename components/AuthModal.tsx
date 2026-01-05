@@ -5,6 +5,7 @@ import { Mail, ShieldCheck } from "lucide-react";
 import { Modal } from "./Modal";
 import { Toast, type ToastKind } from "./Toast";
 import { asErrorMessage, authenticate, sendCode } from "@/lib/api";
+import { getRecaptchaToken } from "@/lib/recaptcha";
 import { readAuth, writeAuth } from "@/lib/storage";
 
 type Step = "send" | "verify" | "done";
@@ -49,7 +50,8 @@ export function AuthModal({
   async function onSendCode() {
     setBusy(true);
     try {
-      const res = await sendCode({ email });
+      const recaptchaToken = await getRecaptchaToken("send_code");
+      const res = await sendCode({ email, recaptchaToken });
       setCooldown(res.cooldownSeconds ?? 60);
       setStep("verify");
       setToast({ open: true, kind: "success", message: "Код отправлен на почту. Введи его ниже." });
@@ -67,7 +69,8 @@ export function AuthModal({
     }
     setBusy(true);
     try {
-      const res = await authenticate({ email, code: code.trim() });
+      const recaptchaToken = await getRecaptchaToken("authenticate");
+      const res = await authenticate({ email, code: code.trim(), recaptchaToken });
       writeAuth(res);
       setStep("done");
       onAuthChanged();
