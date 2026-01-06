@@ -50,8 +50,8 @@ export function AuthModal({
   async function onSendCode() {
     setBusy(true);
     try {
-      const recaptchaToken = await getRecaptchaToken("send_code");
-      const res = await sendCode({ email, recaptchaToken });
+      const googleRecaptchaResponse = await getRecaptchaToken("send_code");
+      const res = await sendCode({ email, googleRecaptchaResponse });
       setCooldown(res.cooldownSeconds ?? 60);
       setStep("verify");
       setToast({ open: true, kind: "success", message: "Код отправлен на почту. Введи его ниже." });
@@ -69,8 +69,8 @@ export function AuthModal({
     }
     setBusy(true);
     try {
-      const recaptchaToken = await getRecaptchaToken("authenticate");
-      const res = await authenticate({ email, code: code.trim(), recaptchaToken });
+      const googleRecaptchaResponse = await getRecaptchaToken("authenticate");
+      const res = await authenticate({ email, code: code.trim(), googleRecaptchaResponse });
       writeAuth(res);
       setStep("done");
       onAuthChanged();
