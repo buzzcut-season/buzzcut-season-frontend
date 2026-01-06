@@ -5,7 +5,7 @@ export type HealthResponse = {
 
 export type SendCodeRequest = {
   email: string;
-  googleRecaptchaResponse: string;
+  recaptchaResponse: string;
 };
 
 export type SendCodeResponse = {
@@ -15,7 +15,7 @@ export type SendCodeResponse = {
 export type AuthenticateRequest = {
   email: string;
   code: string;
-  googleRecaptchaResponse: string;
+  recaptchaResponse: string;
 };
 
 export type AuthenticateResponse = {
