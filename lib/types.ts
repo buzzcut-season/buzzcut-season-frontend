@@ -38,10 +38,13 @@ export type RefreshTokenResponse = {
 export type ProductFeedItem = {
   id: number;
   name: string;
-  priceSubunits: number;
-  currency: string;
-  image: string;
-  prices?: Record<string, number>;
+  baseCurrency?: string | null;
+  prices?: Array<{
+    currency: string;
+    amount: number;
+    precision: number;
+  }> | null;
+  image?: string | null;
 };
 
 export type ProductFeedResponse = {
