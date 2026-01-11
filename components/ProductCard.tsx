@@ -28,11 +28,7 @@ export function ProductCard({
 }) {
   const prices = item.prices ?? [];
   const selected =
-    prices.find((price) => price.currency === currency) ??
-    (item.baseCurrency
-      ? prices.find((price) => price.currency === item.baseCurrency)
-      : undefined) ??
-    prices[0];
+    prices.find((price) => price.currency === currency) ?? prices[0];
 
   return (
     <div className="card overflow-hidden group">
