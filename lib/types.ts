@@ -41,8 +41,7 @@ export type ProductFeedItem = {
   baseCurrency?: string | null;
   prices?: Array<{
     currency: string;
-    amount: number;
-    precision: number;
+    price: string;
   }> | null;
   image?: string | null;
 };

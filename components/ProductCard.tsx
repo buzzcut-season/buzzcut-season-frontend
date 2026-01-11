@@ -2,22 +2,20 @@ import Image from "next/image";
 import type { ProductFeedItem } from "@/lib/types";
 
 function formatMoney(
-  amount: number | null | undefined,
-  precision: number | null | undefined,
+  price: string | null | undefined,
   currency: string | null | undefined
 ) {
-  if (amount == null || precision == null || !currency) return "—";
-  const divider = Math.pow(10, precision);
-  const value = divider ? amount / divider : amount;
-  const maxFractionDigits = Math.max(0, Math.min(precision, 8));
+  if (price == null || !currency) return "—";
+  const value = Number(price);
+  if (!Number.isFinite(value)) return "—";
   try {
     return new Intl.NumberFormat("ru-RU", {
       style: "currency",
       currency,
-      maximumFractionDigits: maxFractionDigits,
+      maximumFractionDigits: 2,
     }).format(value);
   } catch {
-    return `${value.toFixed(maxFractionDigits)} ${currency}`;
+    return `${value.toFixed(2)} ${currency}`;
   }
 }
 
@@ -30,7 +28,11 @@ export function ProductCard({
 }) {
   const prices = item.prices ?? [];
   const selected =
-    prices.find((price) => price.currency === currency) ?? prices[0];
+    prices.find((price) => price.currency === currency) ??
+    (item.baseCurrency
+      ? prices.find((price) => price.currency === item.baseCurrency)
+      : undefined) ??
+    prices[0];
 
   return (
     <div className="card overflow-hidden group">
@@ -87,7 +89,7 @@ export function ProductCard({
         </div>
         <div className="mt-3 flex items-end justify-between gap-3">
           <div className="text-[var(--ink)] font-semibold">
-            {formatMoney(selected?.amount, selected?.precision, selected?.currency)}
+            {formatMoney(selected?.price, selected?.currency)}
           </div>
           <button className="btn btn-primary">Купить</button>
         </div>
