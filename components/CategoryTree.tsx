@@ -32,9 +32,7 @@ export function CategoryTree({ categories }: CategoryTreeProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {categories.map((node) => (
-        <div key={node.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
-          <CategoryTreeNode node={node} level={0} />
-        </div>
+        <CategoryTreeNode key={node.id} node={node} level={0} />
       ))}
     </div>
   );
