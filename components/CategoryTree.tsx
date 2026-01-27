@@ -4,14 +4,18 @@ type CategoryTreeProps = {
   categories: CategoryNode[];
 };
 
-const INDENT_PX = 16;
+const INDENT_PX = 14;
 
 function CategoryTreeNode({ node, level }: { node: CategoryNode; level: number }) {
+  const isRoot = level === 0;
   return (
     <div>
-      <div className="flex items-start gap-2" style={{ marginLeft: level * INDENT_PX }}>
-        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-white/60" />
-        <span className="text-sm">{node.name}</span>
+      <div
+        className={isRoot ? "text-sm font-semibold" : "flex items-start gap-2 text-xs text-zinc-200/90"}
+        style={{ marginLeft: level * INDENT_PX }}
+      >
+        {isRoot ? null : <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-white/50" />}
+        <span>{node.name}</span>
       </div>
       {node.children.length > 0 ? (
         <div className="mt-2 space-y-2">
