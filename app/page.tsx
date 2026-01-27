@@ -103,34 +103,14 @@ export default function Page() {
         )}
 
         <div className="mt-6">
-          <div className="card p-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="card p-6">
             <div>
               <div className="text-sm font-semibold">Каталог</div>
               <div className="text-xs text-[var(--muted)] mt-1">
-                Скоро здесь появятся тематические подборки
+                Всё разложено по темам — выбирайте нужную категорию
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                "Игры и игровые сервисы",
-                "Игровые ценности",
-                "Мобильные игры",
-                "Сервисы и соцсети",
-                "Программы",
-              ].map((label) => (
-                <span key={label} className="badge">
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="card p-6 mt-6">
-            <div className="text-sm font-semibold">Категории</div>
-            <div className="text-xs text-[var(--muted)] mt-1">
-              Дерево категорий доступно только для чтения
-            </div>
-            <div className="mt-4">
+            <div className="mt-5">
               {categoriesLoading ? (
                 <div className="flex items-center gap-2 text-[var(--muted)]">
                   <Loader2 className="h-4 w-4 animate-spin" />
