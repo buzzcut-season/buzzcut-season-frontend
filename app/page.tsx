@@ -107,7 +107,7 @@ export default function Page() {
             <div>
               <div className="text-sm font-semibold">Каталог</div>
               <div className="text-xs text-[var(--muted)] mt-1">
-                Всё разложено по темам — выбирайте нужную категорию
+                Browse categories
               </div>
             </div>
             <div className="mt-5">
