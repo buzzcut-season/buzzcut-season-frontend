@@ -5,8 +5,9 @@ import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
 import { ProductCard } from "@/components/ProductCard";
-import { asErrorMessage, getProductFeed } from "@/lib/api";
-import type { ProductFeedItem } from "@/lib/types";
+import { CategoryTree } from "@/components/CategoryTree";
+import { asErrorMessage, getCategoryTree, getProductFeed } from "@/lib/api";
+import type { CategoryNode, ProductFeedItem } from "@/lib/types";
 import { readAuth } from "@/lib/storage";
 
 export default function Page() {
@@ -21,6 +22,10 @@ export default function Page() {
   const [items, setItems] = useState<ProductFeedItem[]>([]);
   const [page, setPage] = useState(0);
   const size = 24;
+
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -63,6 +68,22 @@ export default function Page() {
     load(0, "replace");
   }, [load]);
 
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        setCategoriesError(null);
+        const res = await getCategoryTree();
+        setCategories(res.categories ?? []);
+      } catch (e) {
+        setCategoriesError(asErrorMessage(e));
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    loadCategories();
+  }, []);
+
   return (
     <main className="min-h-screen pb-16">
       <Header
@@ -101,6 +122,29 @@ export default function Page() {
                   {label}
                 </span>
               ))}
+            </div>
+          </div>
+
+          <div className="card p-6 mt-6">
+            <div className="text-sm font-semibold">Категории</div>
+            <div className="text-xs text-[var(--muted)] mt-1">
+              Дерево категорий доступно только для чтения
+            </div>
+            <div className="mt-4">
+              {categoriesLoading ? (
+                <div className="flex items-center gap-2 text-[var(--muted)]">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Загружаю категории...
+                </div>
+              ) : categoriesError ? (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-200">
+                  {categoriesError}
+                </div>
+              ) : categories.length === 0 ? (
+                <div className="text-sm text-[var(--muted)]">No categories yet</div>
+              ) : (
+                <CategoryTree categories={categories} />
+              )}
             </div>
           </div>
 

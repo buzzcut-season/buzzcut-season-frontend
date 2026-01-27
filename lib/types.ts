@@ -50,3 +50,13 @@ export type ProductFeedResponse = {
   size: number;
   items: ProductFeedItem[];
 };
+
+export type CategoryNode = {
+  id: number;
+  name: string;
+  children: CategoryNode[];
+};
+
+export type CategoryTreeResponse = {
+  categories: CategoryNode[];
+};

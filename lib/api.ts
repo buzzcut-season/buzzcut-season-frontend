@@ -1,6 +1,7 @@
 import type {
   AuthenticateRequest,
   AuthenticateResponse,
+  CategoryTreeResponse,
   HealthResponse,
   ProductFeedResponse,
   RefreshTokenRequest,
@@ -112,6 +113,10 @@ export async function getProductFeed(params?: { page?: number; size?: number }):
   const size = params?.size ?? 24;
   const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
   return request<ProductFeedResponse>(`/api/v1/product-feed?${qs}`, { method: "GET" });
+}
+
+export async function getCategoryTree(): Promise<CategoryTreeResponse> {
+  return request<CategoryTreeResponse>("/api/v1/categories/tree", { method: "GET" });
 }
 
 export { asErrorMessage };
