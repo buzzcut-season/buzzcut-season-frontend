@@ -75,7 +75,7 @@ export function Header({
           {!isAuthed ? (
             <button className="btn btn-primary" onClick={onOpenAuth}>
               <LogIn className="h-4 w-4" />
-              Войти
+              Sign in
             </button>
           ) : (
             <div className="relative" ref={menuRef}>
@@ -86,7 +86,7 @@ export function Header({
                 aria-expanded={menuOpen}
               >
                 <User className="h-4 w-4" />
-                Аккаунт
+                Account
               </button>
               {menuOpen && (
                 <div
@@ -94,20 +94,20 @@ export function Header({
                   role="menu"
                 >
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
-                    Профиль
+                    Profile
                   </button>
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
-                    Заказы
+                    Orders
                   </button>
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
-                    Избранное
+                    Favorites
                   </button>
                   <button
                     className="w-full rounded-xl px-3 py-2 text-left text-pink-600 hover:bg-pink-500/10"
                     role="menuitem"
                     onClick={logout}
                   >
-                    Выйти
+                    Sign out
                   </button>
                 </div>
               )}

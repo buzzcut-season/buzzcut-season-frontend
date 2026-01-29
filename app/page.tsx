@@ -97,24 +97,22 @@ export default function Page() {
       <section className="mx-auto max-w-7xl px-4 mt-8">
         {error && (
           <div className="mt-4 card p-4 border-red-500/25 bg-red-500/5">
-            <div className="text-sm font-medium text-red-700">Ошибка</div>
+            <div className="text-sm font-medium text-red-700">Error</div>
             <div className="text-xs text-red-700/80 mt-1 break-words">{error}</div>
           </div>
         )}
 
         <div className="mt-6">
-          <div className="card p-6">
-            <div>
-              <div className="text-sm font-semibold">Каталог</div>
-              <div className="text-xs text-[var(--muted)] mt-1">
-                Browse categories
-              </div>
+          <div className="card px-6 py-4">
+            <div className="space-y-1">
+              <div className="text-sm font-semibold">Catalog</div>
+              <div className="text-xs text-[var(--muted)]">Browse categories</div>
             </div>
-            <div className="mt-5">
+            <div className="mt-4">
               {categoriesLoading ? (
                 <div className="flex items-center gap-2 text-[var(--muted)]">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Загружаю категории...
+                  Loading categories...
                 </div>
               ) : categoriesError ? (
                 <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-200">
@@ -132,7 +130,7 @@ export default function Page() {
             <div className="card p-10 grid place-items-center">
               <div className="flex items-center gap-2 text-[var(--muted)]">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Загружаю товары...
+                Loading products...
               </div>
             </div>
           ) : (
@@ -148,15 +146,15 @@ export default function Page() {
                   className="btn btn-primary"
                   onClick={() => load(page + 1, "append")}
                   disabled={loadingMore || !canLoadMore}
-                  title="Загрузить следующую страницу (если API поддерживает page/size)"
+                  title="Load the next page (if the API supports page/size)"
                 >
                   {loadingMore ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Гружу...
+                      Loading...
                     </>
                   ) : (
-                    "Загрузить ещё"
+                    "Load more"
                   )}
                 </button>
               </div>

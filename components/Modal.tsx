@@ -38,7 +38,7 @@ export function Modal({
             <div>
               <div className="text-lg font-semibold">{title}</div>
               <div className="text-xs text-[var(--muted)] mt-1">
-                Вход по коду из письма
+                Sign in with a code from your email
               </div>
             </div>
             <button className="btn h-9 w-9 p-0" onClick={onClose} aria-label="Close">

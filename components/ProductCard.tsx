@@ -87,7 +87,7 @@ export function ProductCard({
           <div className="text-[var(--ink)] font-semibold">
             {formatMoney(selected?.price, selected?.currency)}
           </div>
-          <button className="btn btn-primary">Купить</button>
+          <button className="btn btn-primary">Buy</button>
         </div>
       </div>
     </div>
