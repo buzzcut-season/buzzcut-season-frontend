@@ -103,10 +103,10 @@ export default function Page() {
         )}
 
         <div className="mt-6">
-          <div className="relative overflow-hidden rounded-[28px] border border-white/12 bg-gradient-to-br from-[#161225]/95 via-[#0f0b18]/95 to-[#0b0a10]/98 px-6 py-5 shadow-[0_26px_70px_rgba(6,4,16,0.6)]">
+          <div className="relative overflow-hidden rounded-[28px] border border-white/6 bg-gradient-to-br from-[#161225]/95 via-[#0f0b18]/95 to-[#0b0a10]/98 px-6 py-5 shadow-[0_22px_60px_rgba(6,4,16,0.55)]">
             <div className="pointer-events-none absolute -top-28 right-[-30px] h-56 w-56 rounded-full bg-violet-500/12 blur-[90px]" />
             <div className="pointer-events-none absolute -bottom-24 left-[-50px] h-64 w-64 rounded-full bg-pink-500/10 blur-[90px]" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/50 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/30 to-transparent" />
 
             <div className="space-y-1">
               <div className="text-sm font-semibold tracking-tight text-zinc-100">Catalog</div>
