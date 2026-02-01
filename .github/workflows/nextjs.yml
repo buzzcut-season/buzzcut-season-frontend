@@ -58,6 +58,13 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
 
+      - name: Guard against CommonJS Next config
+        run: |
+          if [ -f "${{ github.workspace }}/next.config.js" ]; then
+            echo "next.config.js is not supported with type=module. Use next.config.mjs instead."
+            exit 1
+          fi
+
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
         env:

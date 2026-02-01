@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  output: "export",
   images: {
+    unoptimized: true,
     // Allow external images (tighten by domain if needed)
     remotePatterns: [
       { protocol: "https", hostname: "**" },
