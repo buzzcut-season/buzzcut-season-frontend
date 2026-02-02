@@ -27,8 +27,13 @@ export function ProductCard({
   currency: string;
 }) {
   const prices = item.prices ?? [];
-  const selected =
-    prices.find((price) => price.currency === currency) ?? prices[0];
+  const preferred = prices.find((price) => price.currency === currency) ?? null;
+  const fallback = preferred ?? prices[0] ?? null;
+  const availableCurrencies = prices
+    .map((price) => price.currency)
+    .filter(Boolean);
+  const hasPrice = !!fallback;
+  const missingPreferred = !preferred && prices.length > 0;
 
   return (
     <div className="card overflow-hidden group">
@@ -83,11 +88,31 @@ export function ProductCard({
         <div className="font-semibold leading-snug line-clamp-2">
           {item.name}
         </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
+          {availableCurrencies.length > 0 ? (
+            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
+              {availableCurrencies.join(", ")}
+            </span>
+          ) : (
+            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
+              no prices
+            </span>
+          )}
+          {missingPreferred && fallback ? (
+            <span>
+              No price in {currency}. Showing {fallback.currency}.
+            </span>
+          ) : null}
+        </div>
         <div className="mt-3 flex items-end justify-between gap-3">
           <div className="text-[var(--ink)] font-semibold">
-            {formatMoney(selected?.price, selected?.currency)}
+            {hasPrice
+              ? formatMoney(fallback?.price, fallback?.currency)
+              : "Price unavailable"}
           </div>
-          <button className="btn btn-primary">Buy</button>
+          <button className="btn btn-primary" disabled={!hasPrice}>
+            {hasPrice ? "Buy" : "Unavailable"}
+          </button>
         </div>
       </div>
     </div>
