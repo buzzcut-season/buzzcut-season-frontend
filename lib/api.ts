@@ -8,6 +8,7 @@ import type {
   RefreshTokenResponse,
   SendCodeRequest,
   SendCodeResponse,
+  SellerCreateRequest,
 } from "./types";
 import { clearAuth, readAuth, updateAuthAccessToken } from "./storage";
 
@@ -117,6 +118,13 @@ export async function getProductFeed(params?: { page?: number; size?: number }):
 
 export async function getCategoryTree(): Promise<CategoryTreeResponse> {
   return request<CategoryTreeResponse>("/api/v1/categories/tree", { method: "GET" });
+}
+
+export async function createSeller(body: SellerCreateRequest): Promise<unknown> {
+  return request<unknown>("/api/v1/sellers", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export { asErrorMessage };

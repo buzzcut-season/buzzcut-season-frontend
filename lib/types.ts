@@ -35,6 +35,10 @@ export type RefreshTokenResponse = {
   expiresAt: string;
 };
 
+export type SellerCreateRequest = {
+  name: string;
+};
+
 export type ProductFeedItem = {
   id: number;
   name: string;

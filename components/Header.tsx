@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { LogIn, User } from "lucide-react";
+import { asErrorMessage, createSeller } from "@/lib/api";
 import { clearAuth } from "@/lib/storage";
 
 const CURRENCIES = ["RUB", "USD", "EUR"] as const;
@@ -20,6 +21,7 @@ export function Header({
   onCurrencyChange: (next: (typeof CURRENCIES)[number]) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sellerBusy, setSellerBusy] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -37,6 +39,22 @@ export function Header({
     clearAuth();
     onAuthChanged();
     setMenuOpen(false);
+  }
+
+  async function becomeSeller() {
+    if (sellerBusy) return;
+    const name = window.prompt("Seller name");
+    if (!name || !name.trim()) return;
+    setSellerBusy(true);
+    try {
+      await createSeller({ name: name.trim() });
+      setMenuOpen(false);
+      window.alert("You are now a seller.");
+    } catch (e) {
+      window.alert(asErrorMessage(e));
+    } finally {
+      setSellerBusy(false);
+    }
   }
 
   return (
@@ -101,6 +119,14 @@ export function Header({
                   </button>
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Favorites
+                  </button>
+                  <button
+                    className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5 disabled:opacity-60 disabled:cursor-not-allowed"
+                    role="menuitem"
+                    onClick={becomeSeller}
+                    disabled={sellerBusy}
+                  >
+                    {sellerBusy ? "Creating seller..." : "Become a seller"}
                   </button>
                   <button
                     className="w-full rounded-xl px-3 py-2 text-left text-pink-600 hover:bg-pink-500/10"
