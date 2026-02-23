@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { LogIn, User } from "lucide-react";
 import { asErrorMessage, createSeller } from "@/lib/api";
 import { clearAuth } from "@/lib/storage";
@@ -120,6 +121,14 @@ export function Header({
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Favorites
                   </button>
+                  <Link
+                    href="/seller"
+                    className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Seller studio
+                  </Link>
                   <button
                     className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5 disabled:opacity-60 disabled:cursor-not-allowed"
                     role="menuitem"

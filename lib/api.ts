@@ -2,13 +2,20 @@ import type {
   AuthenticateRequest,
   AuthenticateResponse,
   CategoryTreeResponse,
+  ConfirmDraftImageRequest,
+  CreateDraftResponse,
   HealthResponse,
+  PresignDraftImageRequest,
+  PresignDraftImageResponse,
+  PublishDraftResponse,
   ProductFeedResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
+  SellerDraft,
   SendCodeRequest,
   SendCodeResponse,
   SellerCreateRequest,
+  UpdateDraftRequest,
 } from "./types";
 import { clearAuth, readAuth, updateAuthAccessToken } from "./storage";
 
@@ -125,6 +132,72 @@ export async function createSeller(body: SellerCreateRequest): Promise<unknown> 
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+export async function createDraft(): Promise<CreateDraftResponse> {
+  return request<CreateDraftResponse>("/api/seller/v1/drafts", { method: "POST" });
+}
+
+export async function updateDraft(draftId: number, body: UpdateDraftRequest): Promise<SellerDraft> {
+  return request<SellerDraft>(`/api/seller/v1/drafts/${draftId}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getDraft(draftId: number): Promise<SellerDraft> {
+  return request<SellerDraft>(`/api/seller/v1/drafts/${draftId}`, { method: "GET" });
+}
+
+export async function presignDraftImage(
+  draftId: number,
+  body: PresignDraftImageRequest,
+): Promise<PresignDraftImageResponse> {
+  return request<PresignDraftImageResponse>(`/api/seller/v1/drafts/${draftId}/images/presign`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function uploadFileToPresignedUrl(uploadUrl: string, file: File): Promise<void> {
+  const headers = new Headers();
+  if (file.type) {
+    headers.set("content-type", file.type);
+  }
+
+  const res = await fetch(uploadUrl, {
+    method: "PUT",
+    headers,
+    body: file,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Upload failed: HTTP ${res.status}: ${text || res.statusText}`);
+  }
+}
+
+export async function confirmDraftImage(
+  draftId: number,
+  body: ConfirmDraftImageRequest,
+): Promise<CreateDraftResponse> {
+  return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/images/confirm`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteDraftImage(draftId: number, position: number): Promise<CreateDraftResponse> {
+  return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/images/${position}`, {
+    method: "DELETE",
+  });
+}
+
+export async function publishDraft(draftId: number): Promise<PublishDraftResponse> {
+  return request<PublishDraftResponse>(`/api/seller/v1/drafts/${draftId}/publish`, { method: "POST" });
+}
+
+export async function cancelDraft(draftId: number): Promise<CreateDraftResponse> {
+  return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/cancel`, { method: "POST" });
 }
 
 export { asErrorMessage };

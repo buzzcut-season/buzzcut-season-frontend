@@ -64,3 +64,55 @@ export type CategoryNode = {
 export type CategoryTreeResponse = {
   categories: CategoryNode[];
 };
+
+export type DraftCurrency = "RUB" | "USD" | "EUR" | string;
+
+export type SellerDraftStatus = "EMPTY" | "IN_PROGRESS" | "READY" | "PUBLISHED" | "CANCELED" | string;
+
+export type DraftImage = {
+  position: number;
+  image: string;
+};
+
+export type CreateDraftResponse = {
+  draftId: number;
+};
+
+export type UpdateDraftRequest = {
+  name: string;
+  description: string;
+  currency: DraftCurrency;
+  price: string;
+  categoryId: number;
+};
+
+export type SellerDraft = {
+  draftId: number;
+  name?: string;
+  description?: string;
+  currency?: DraftCurrency;
+  price?: string;
+  categoryId?: number;
+  status: SellerDraftStatus;
+  images?: DraftImage[];
+};
+
+export type PresignDraftImageRequest = {
+  fileName: string;
+  sizeBytes: number;
+};
+
+export type PresignDraftImageResponse = {
+  draftId: number;
+  token: string;
+  uploadUrl: string;
+};
+
+export type ConfirmDraftImageRequest = {
+  token: string;
+};
+
+export type PublishDraftResponse = {
+  draftId: number;
+  productId: number;
+};
