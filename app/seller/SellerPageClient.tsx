@@ -112,7 +112,6 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
 
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [reloading, setReloading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -135,7 +134,6 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   }, []);
 
   const refreshDraft = useCallback(async (id: number) => {
-    setReloading(true);
     try {
       const loaded = await getDraft(id);
       setDraft(loaded);
@@ -147,8 +145,6 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
       }
     } catch (e) {
       setError(asErrorMessage(e));
-    } finally {
-      setReloading(false);
     }
   }, [fillForm]);
 
@@ -206,6 +202,11 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     if (!isAuthed || !draftId) return;
     void refreshDraft(draftId);
   }, [isAuthed, draftId, refreshDraft]);
+
+  useEffect(() => {
+    if (!isAuthed || !draftId || step !== "images") return;
+    void refreshDraft(draftId);
+  }, [isAuthed, draftId, step, refreshDraft]);
 
   async function onCreateDraft() {
     if (creating) return;
@@ -374,10 +375,6 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                       Status: <span className="text-zinc-200">{draft?.status ?? "unknown"}</span>
                     </div>
                   </div>
-                  <button className="btn" onClick={() => refreshDraft(draftId)} disabled={reloading}>
-                    {reloading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Reload
-                  </button>
                 </div>
 
                 {step === "details" ? (
