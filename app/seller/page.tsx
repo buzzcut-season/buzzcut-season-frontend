@@ -399,7 +399,13 @@ export default function SellerPage() {
                           {draft.images.map((img) => (
                             <div key={img.position} className="rounded-xl border border-white/10 bg-black/20 p-3">
                               <div className="relative h-40 w-full overflow-hidden rounded-lg">
-                                <Image src={img.image} alt={`Draft image ${img.position}`} fill className="object-cover" />
+                                <Image
+                                  src={img.image}
+                                  alt={`Draft image ${img.position}`}
+                                  fill
+                                  unoptimized
+                                  className="object-cover"
+                                />
                               </div>
                               <div className="mt-2 flex items-center justify-between">
                                 <div className="text-xs text-zinc-400">Image</div>

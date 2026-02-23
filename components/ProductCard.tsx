@@ -67,6 +67,7 @@ export function ProductCard({
               src={item.image}
               alt={item.name}
               fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, 33vw"
               className="object-contain scale-[1.01] transition-transform duration-500 group-hover:scale-[1.03]"
               style={{
