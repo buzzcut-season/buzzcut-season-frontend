@@ -335,6 +335,12 @@ export default function SellerPage() {
                           placeholder="799.99"
                           value={form.price}
                           onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+                          onBlur={() => {
+                            const normalized = normalizePrice(form.price);
+                            if (normalized) {
+                              setForm((prev) => ({ ...prev, price: normalized }));
+                            }
+                          }}
                         />
                       </div>
                       <div className="sm:col-span-2">
