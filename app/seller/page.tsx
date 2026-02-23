@@ -71,7 +71,6 @@ export default function SellerPage() {
   const [publishing, setPublishing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [priceCaretIndex, setPriceCaretIndex] = useState<number | null>(null);
 
   const categoryOptions = useMemo(() => flattenCategories(categories), [categories]);
 
@@ -145,25 +144,6 @@ export default function SellerPage() {
       setCreating(false);
     }
   }
-
-  function onPriceChange(nextRawValue: string) {
-    const next = nextRawValue.replace(",", ".");
-    if (/^\d+$/.test(next)) {
-      const formatted = `${next}.00`;
-      setForm((prev) => ({ ...prev, price: formatted }));
-      setPriceCaretIndex(next.length);
-      return;
-    }
-    setForm((prev) => ({ ...prev, price: next }));
-  }
-
-  useEffect(() => {
-    if (priceCaretIndex === null) return;
-    const input = document.getElementById("seller-price-input") as HTMLInputElement | null;
-    if (!input) return;
-    input.setSelectionRange(priceCaretIndex, priceCaretIndex);
-    setPriceCaretIndex(null);
-  }, [priceCaretIndex, form.price]);
 
   async function onNext() {
     if (!draftId || saving) return;
@@ -351,11 +331,18 @@ export default function SellerPage() {
                       <div>
                         <label className="text-xs text-zinc-300">Price</label>
                         <input
-                          id="seller-price-input"
                           className="input mt-1"
                           placeholder="799.99"
                           value={form.price}
-                          onChange={(e) => onPriceChange(e.target.value)}
+                          onChange={(e) =>
+                            setForm((prev) => ({ ...prev, price: e.target.value.replace(",", ".") }))
+                          }
+                          onBlur={() => {
+                            const normalized = normalizePrice(form.price);
+                            if (normalized) {
+                              setForm((prev) => ({ ...prev, price: normalized }));
+                            }
+                          }}
                         />
                       </div>
                       <div className="sm:col-span-2">
