@@ -398,13 +398,40 @@ export default function SellerPage() {
                         <div className="grid gap-3 sm:grid-cols-2">
                           {draft.images.map((img) => (
                             <div key={img.position} className="rounded-xl border border-white/10 bg-black/20 p-3">
-                              <div className="relative h-40 w-full overflow-hidden rounded-lg">
+                              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-[#0b0a10]">
+                                <div
+                                  className="absolute inset-0 scale-[1.15] blur-xl opacity-50"
+                                  style={{
+                                    backgroundImage: `url(${img.image})`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    WebkitMaskImage:
+                                      "radial-gradient(85% 85% at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
+                                    maskImage:
+                                      "radial-gradient(85% 85% at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
+                                  }}
+                                  aria-hidden
+                                />
+                                <div
+                                  className="absolute inset-0"
+                                  style={{
+                                    background:
+                                      "radial-gradient(90% 90% at 50% 50%, rgba(11,10,16,0) 0%, rgba(11,10,16,0.55) 70%, rgba(11,10,16,0.95) 100%)",
+                                  }}
+                                  aria-hidden
+                                />
                                 <Image
                                   src={img.image}
                                   alt={`Draft image ${img.position}`}
                                   fill
                                   unoptimized
-                                  className="object-cover"
+                                  className="object-contain scale-[1.01]"
+                                  style={{
+                                    WebkitMaskImage:
+                                      "radial-gradient(80% 80% at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.85) 75%, rgba(0,0,0,0) 100%)",
+                                    maskImage:
+                                      "radial-gradient(80% 80% at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.85) 75%, rgba(0,0,0,0) 100%)",
+                                  }}
                                 />
                               </div>
                               <div className="mt-2 flex items-center justify-between">
