@@ -8,7 +8,6 @@ import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import {
   asErrorMessage,
-  cancelDraft,
   confirmDraftImage,
   createDraft,
   deleteDraftImage,
@@ -37,6 +36,14 @@ function flattenCategories(nodes: CategoryNode[], level = 0): Array<{ id: number
   ]);
 }
 
+function normalizePrice(value: string): string | null {
+  const cleaned = value.trim().replace(",", ".");
+  if (!cleaned) return null;
+  const parsed = Number(cleaned);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed.toFixed(2);
+}
+
 export default function SellerPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
@@ -47,6 +54,7 @@ export default function SellerPage() {
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const [draftId, setDraftId] = useState<number | null>(null);
+  const [step, setStep] = useState<"details" | "images">("details");
   const [draft, setDraft] = useState<SellerDraft | null>(null);
   const [form, setForm] = useState<DraftFormState>({
     name: "",
@@ -61,7 +69,6 @@ export default function SellerPage() {
   const [reloading, setReloading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [canceling, setCanceling] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,8 +135,9 @@ export default function SellerPage() {
     try {
       const created = await createDraft();
       setDraftId(created.draftId);
+      setStep("details");
       await refreshDraft(created.draftId);
-      setMessage(`Draft #${created.draftId} created`);
+      setMessage("Draft created");
     } catch (e) {
       setError(asErrorMessage(e));
     } finally {
@@ -137,10 +145,11 @@ export default function SellerPage() {
     }
   }
 
-  async function onSaveDraft() {
+  async function onNext() {
     if (!draftId || saving) return;
     const categoryId = Number(form.categoryId);
-    if (!form.name.trim() || !form.description.trim() || !form.price.trim() || Number.isNaN(categoryId)) {
+    const normalizedPrice = normalizePrice(form.price);
+    if (!form.name.trim() || !form.description.trim() || !normalizedPrice || Number.isNaN(categoryId)) {
       setError("Fill all fields: name, description, price, category");
       return;
     }
@@ -153,12 +162,14 @@ export default function SellerPage() {
         name: form.name.trim(),
         description: form.description.trim(),
         currency: form.currency,
-        price: form.price.trim(),
+        price: normalizedPrice,
         categoryId,
       });
       setDraft(updated);
       fillForm(updated);
-      setMessage(`Draft saved. Status: ${updated.status}`);
+      setForm((prev) => ({ ...prev, price: normalizedPrice }));
+      setStep("images");
+      setMessage(`Details saved. Status: ${updated.status}`);
     } catch (e) {
       setError(asErrorMessage(e));
     } finally {
@@ -218,22 +229,6 @@ export default function SellerPage() {
     }
   }
 
-  async function onCancel() {
-    if (!draftId || canceling) return;
-    setCanceling(true);
-    setError(null);
-    setMessage(null);
-    try {
-      await cancelDraft(draftId);
-      await refreshDraft(draftId);
-      setMessage("Draft canceled");
-    } catch (e) {
-      setError(asErrorMessage(e));
-    } finally {
-      setCanceling(false);
-    }
-  }
-
   return (
     <main className="min-h-screen pb-16">
       <Header
@@ -264,7 +259,7 @@ export default function SellerPage() {
                 <div>
                   <div className="text-lg font-semibold">Create Product Draft</div>
                   <div className="text-sm text-zinc-300">
-                    Click once to create a draft, then fill fields and publish.
+                    Click once to create a draft. Step 1: fill details. Step 2: upload images and publish.
                   </div>
                 </div>
                 <button
@@ -276,9 +271,6 @@ export default function SellerPage() {
                   {creating ? "Creating..." : "Create product"}
                 </button>
               </div>
-              {draftId ? (
-                <div className="badge">Draft ID: {draftId}</div>
-              ) : null}
             </div>
 
             {error ? (
@@ -292,7 +284,9 @@ export default function SellerPage() {
               <div className="card p-6 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="space-y-1">
-                    <div className="text-base font-semibold">Draft details</div>
+                    <div className="text-base font-semibold">
+                      {step === "details" ? "Step 1 of 2: Product details" : "Step 2 of 2: Images and publish"}
+                    </div>
                     <div className="text-xs text-zinc-400">
                       Status: <span className="text-zinc-200">{draft?.status ?? "unknown"}</span>
                     </div>
@@ -303,117 +297,125 @@ export default function SellerPage() {
                   </button>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <label className="text-xs text-zinc-300">Name</label>
-                    <input
-                      className="input mt-1"
-                      value={form.name}
-                      onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-xs text-zinc-300">Description</label>
-                    <textarea
-                      className="input mt-1 min-h-[90px]"
-                      value={form.description}
-                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-zinc-300">Currency</label>
-                    <select
-                      className="input mt-1"
-                      value={form.currency}
-                      onChange={(e) => setForm((prev) => ({ ...prev, currency: e.target.value }))}
-                    >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="RUB">RUB</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-zinc-300">Price</label>
-                    <input
-                      className="input mt-1"
-                      placeholder="799.99"
-                      value={form.price}
-                      onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-xs text-zinc-300">Category</label>
-                    <select
-                      className="input mt-1"
-                      value={form.categoryId}
-                      onChange={(e) => setForm((prev) => ({ ...prev, categoryId: e.target.value }))}
-                      disabled={categoriesLoading || !!categoriesError}
-                    >
-                      <option value="">Select category</option>
-                      {categoryOptions.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                    {categoriesLoading ? <div className="text-xs text-zinc-400 mt-1">Loading categories...</div> : null}
-                    {categoriesError ? <div className="text-xs text-red-300 mt-1">{categoriesError}</div> : null}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button className="btn btn-primary" onClick={onSaveDraft} disabled={saving}>
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Save draft
-                  </button>
-                  <button className="btn" onClick={onPublish} disabled={publishing}>
-                    {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Publish
-                  </button>
-                  <button className="btn" onClick={onCancel} disabled={canceling}>
-                    {canceling ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Cancel
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="text-sm font-medium">Images</div>
-                  <label className="btn cursor-pointer w-fit">
-                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {uploading ? "Uploading..." : "Upload images"}
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => {
-                        void onUploadImages(e.target.files);
-                        e.currentTarget.value = "";
-                      }}
-                    />
-                  </label>
-
-                  {draft?.images?.length ? (
+                {step === "details" ? (
+                  <>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      {draft.images.map((img) => (
-                        <div key={img.position} className="rounded-xl border border-white/10 bg-black/20 p-3">
-                          <div className="relative h-40 w-full overflow-hidden rounded-lg">
-                            <Image src={img.image} alt={`Draft image ${img.position}`} fill className="object-cover" />
-                          </div>
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="text-xs text-zinc-400">Position: {img.position}</div>
-                            <button className="btn px-2 py-1 text-xs" onClick={() => onDeleteImage(img.position)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="sm:col-span-2">
+                        <label className="text-xs text-zinc-300">Name</label>
+                        <input
+                          className="input mt-1"
+                          value={form.name}
+                          onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-xs text-zinc-300">Description</label>
+                        <textarea
+                          className="input mt-1 min-h-[90px]"
+                          value={form.description}
+                          onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-zinc-300">Currency</label>
+                        <select
+                          className="input mt-1"
+                          value={form.currency}
+                          onChange={(e) => setForm((prev) => ({ ...prev, currency: e.target.value }))}
+                        >
+                          <option value="USD">USD</option>
+                          <option value="EUR">EUR</option>
+                          <option value="RUB">RUB</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-zinc-300">Price</label>
+                        <input
+                          className="input mt-1"
+                          placeholder="799.99"
+                          value={form.price}
+                          onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-xs text-zinc-300">Category</label>
+                        <select
+                          className="input mt-1"
+                          value={form.categoryId}
+                          onChange={(e) => setForm((prev) => ({ ...prev, categoryId: e.target.value }))}
+                          disabled={categoriesLoading || !!categoriesError}
+                        >
+                          <option value="">Select category</option>
+                          {categoryOptions.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
+                        {categoriesLoading ? <div className="text-xs text-zinc-400 mt-1">Loading categories...</div> : null}
+                        {categoriesError ? <div className="text-xs text-red-300 mt-1">{categoriesError}</div> : null}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-sm text-zinc-400">No images yet</div>
-                  )}
-                </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button className="btn btn-primary" onClick={onNext} disabled={saving}>
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Next
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <div className="text-sm font-medium">Images</div>
+                      <label className="btn cursor-pointer w-fit">
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        {uploading ? "Uploading..." : "Upload images"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            void onUploadImages(e.target.files);
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
+
+                      {draft?.images?.length ? (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {draft.images.map((img) => (
+                            <div key={img.position} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                              <div className="relative h-40 w-full overflow-hidden rounded-lg">
+                                <Image src={img.image} alt={`Draft image ${img.position}`} fill className="object-cover" />
+                              </div>
+                              <div className="mt-2 flex items-center justify-between">
+                                <div className="text-xs text-zinc-400">Image</div>
+                                <button className="btn px-2 py-1 text-xs" onClick={() => onDeleteImage(img.position)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-zinc-400">No images yet</div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button className="btn" onClick={() => setStep("details")}>
+                        Back
+                      </button>
+                      <button className="btn btn-primary" onClick={onPublish} disabled={publishing}>
+                        {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Publish
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : null}
           </>
