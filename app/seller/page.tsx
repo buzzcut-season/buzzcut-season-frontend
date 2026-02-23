@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
@@ -45,6 +46,7 @@ function normalizePrice(value: string): string | null {
 }
 
 export default function SellerPage() {
+  const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("USD");
@@ -222,6 +224,7 @@ export default function SellerPage() {
       const res = await publishDraft(draftId);
       setMessage(`Published. Product ID: ${res.productId}`);
       await refreshDraft(draftId);
+      router.push("/");
     } catch (e) {
       setError(asErrorMessage(e));
     } finally {
