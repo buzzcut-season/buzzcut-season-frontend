@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageCircle, Star, Store, Users } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { ApiHttpError, asErrorMessage, getProductCard } from "@/lib/api";
@@ -121,12 +121,6 @@ export default function ProductPage({ params }: PageProps) {
       />
 
       <section className="mx-auto max-w-7xl px-4 mt-8">
-        <div className="mb-5">
-          <Link href="/" className="btn">
-            Back to marketplace
-          </Link>
-        </div>
-
         {loading ? (
           <div className="card p-10 grid place-items-center">
             <div className="flex items-center gap-2 text-[var(--muted)]">
@@ -141,19 +135,43 @@ export default function ProductPage({ params }: PageProps) {
           </div>
         ) : product ? (
           <div className="space-y-6">
-            <div className="card p-5 md:p-6">
-              <div className="grid gap-6 md:grid-cols-[1.1fr,1fr]">
+            <div className="flex items-center gap-2 text-xs text-zinc-400">
+              <Link href="/" className="hover:text-zinc-200 transition-colors">
+                Marketplace
+              </Link>
+              <span>/</span>
+              <span className="text-zinc-200 truncate">{product.name}</span>
+            </div>
+
+            <div className="card overflow-hidden p-5 md:p-6">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-pink-300/20 to-transparent" />
+              <div className="grid gap-6 lg:grid-cols-[1.15fr,0.85fr]">
                 <div>
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/30">
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                     {activeImage ? (
-                      <Image
-                        src={activeImage}
-                        alt={product.name}
-                        fill
-                        unoptimized
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className="object-contain"
-                      />
+                      <>
+                        <div
+                          className="absolute inset-0 scale-110 blur-2xl opacity-45"
+                          style={{
+                            backgroundImage: `url(${activeImage})`,
+                            backgroundPosition: "center",
+                            backgroundSize: "cover",
+                          }}
+                          aria-hidden
+                        />
+                        <div
+                          className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70"
+                          aria-hidden
+                        />
+                        <Image
+                          src={activeImage}
+                          alt={product.name}
+                          fill
+                          unoptimized
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-contain p-4"
+                        />
+                      </>
                     ) : (
                       <div className="absolute inset-0 grid place-items-center text-sm text-[var(--muted)]">
                         Нет изображения
@@ -170,10 +188,10 @@ export default function ProductPage({ params }: PageProps) {
                             key={`${img.position}-${img.image}`}
                             type="button"
                             onClick={() => setActiveImage(img.image)}
-                            className={`relative aspect-square overflow-hidden rounded-lg border ${
+                            className={`relative aspect-square overflow-hidden rounded-xl border transition ${
                               isActive
-                                ? "border-pink-400/70 ring-1 ring-pink-300/40"
-                                : "border-white/10"
+                                ? "border-pink-400/80 ring-2 ring-pink-300/35"
+                                : "border-white/10 hover:border-white/25"
                             }`}
                             aria-label={`Image ${img.position + 1}`}
                           >
@@ -192,37 +210,64 @@ export default function ProductPage({ params }: PageProps) {
                   ) : null}
                 </div>
 
-                <div>
-                  <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
-                  <p className="mt-3 text-sm text-zinc-200/90 whitespace-pre-wrap">{product.description}</p>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <h1 className="text-2xl font-semibold leading-tight md:text-3xl">{product.name}</h1>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-200/90 whitespace-pre-wrap">
+                      {product.description}
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                      <Store className="h-3.5 w-3.5 text-pink-300" />
+                      <span>{product.seller}</span>
+                    </div>
+                  </div>
 
-                  <div className="mt-5 text-sm text-zinc-300">Seller: {product.seller}</div>
-
-                  <div className="mt-5">
-                    <div className="text-sm font-medium">Price ({currency})</div>
+                  <div className="rounded-2xl border border-pink-400/25 bg-gradient-to-br from-pink-500/15 via-violet-500/10 to-black/40 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-zinc-300/80">Price · {currency}</div>
                     {selectedPrice ? (
-                      <div className="mt-2 text-lg font-semibold text-zinc-100">
+                      <div className="mt-2 text-3xl font-semibold text-zinc-50">
                         {formatPrice(selectedPrice.price, selectedPrice.currency)}
                       </div>
                     ) : (
-                      <div className="mt-2 text-sm text-[var(--muted)]">Цена уточняется</div>
+                      <div className="mt-2 text-sm text-zinc-300">Цена уточняется</div>
                     )}
+                    <div className="mt-3 text-xs text-zinc-400">
+                      Итоговая валюта переключается в хедере страницы.
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-sm font-medium text-zinc-200">Доставка и оплата</div>
+                    <p className="mt-2 text-sm text-zinc-400">
+                      Раздел в разработке. Здесь будут сроки доставки, способы оплаты и гарантии.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-              <section className="card p-4">
-                <h2 className="text-sm font-semibold">Рейтинг</h2>
-                <p className="mt-2 text-sm text-[var(--muted)]">Пока нет данных о рейтинге.</p>
+              <section className="card p-5">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-pink-300" />
+                  <h2 className="text-sm font-semibold">Рейтинг</h2>
+                </div>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Пока нет данных о рейтинге. Появится после первых покупок.
+                </p>
               </section>
-              <section className="card p-4">
-                <h2 className="text-sm font-semibold">Отзывы</h2>
+              <section className="card p-5">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-pink-300" />
+                  <h2 className="text-sm font-semibold">Отзывы</h2>
+                </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">Отзывы появятся позже.</p>
               </section>
-              <section className="card p-4">
-                <h2 className="text-sm font-semibold">Комментарии</h2>
+              <section className="card p-5">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4 text-pink-300" />
+                  <h2 className="text-sm font-semibold">Комментарии</h2>
+                </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">Комментарии еще не реализованы.</p>
               </section>
             </div>
