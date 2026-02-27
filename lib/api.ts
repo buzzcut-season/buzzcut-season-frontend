@@ -7,6 +7,7 @@ import type {
   HealthResponse,
   PresignDraftImageRequest,
   PresignDraftImageResponse,
+  ProductCard,
   PublishDraftResponse,
   ProductFeedResponse,
   RefreshTokenRequest,
@@ -20,6 +21,18 @@ import type {
 import { clearAuth, readAuth, updateAuthAccessToken } from "./storage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
+export class ApiHttpError extends Error {
+  status: number;
+  body: string;
+
+  constructor(status: number, body: string, fallback: string) {
+    super(`HTTP ${status}: ${body || fallback}`);
+    this.name = "ApiHttpError";
+    this.status = status;
+    this.body = body;
+  }
+}
 
 function getApiBase(): string {
   if (!API_BASE) {
@@ -87,12 +100,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
           return (await retryRes.json()) as T;
         }
         const retryText = await retryRes.text().catch(() => "");
-        throw new Error(`HTTP ${retryRes.status}: ${retryText || retryRes.statusText}`);
+        throw new ApiHttpError(retryRes.status, retryText, retryRes.statusText);
       }
       clearAuth();
     }
     const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
+    throw new ApiHttpError(res.status, text, res.statusText);
   }
 
   return (await res.json()) as T;
@@ -121,6 +134,10 @@ export async function getProductFeed(params?: { page?: number; size?: number }):
   const size = params?.size ?? 24;
   const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
   return request<ProductFeedResponse>(`/api/v1/product-feed?${qs}`, { method: "GET" });
+}
+
+export async function getProductCard(productId: number): Promise<ProductCard> {
+  return request<ProductCard>(`/api/v1/product-card/${productId}`, { method: "GET" });
 }
 
 export async function getCategoryTree(): Promise<CategoryTreeResponse> {

@@ -55,6 +55,25 @@ export type ProductFeedResponse = {
   items: ProductFeedItem[];
 };
 
+export type ProductCardPrice = {
+  currency: string;
+  price: string;
+};
+
+export type ProductCardImage = {
+  position: number;
+  image: string;
+};
+
+export type ProductCard = {
+  id: number;
+  name: string;
+  description: string;
+  seller: string;
+  prices: ProductCardPrice[];
+  images: ProductCardImage[];
+};
+
 export type CategoryNode = {
   id: number;
   name: string;

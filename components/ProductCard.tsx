@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ProductFeedItem } from "@/lib/types";
 
 function formatMoney(
@@ -111,9 +112,9 @@ export function ProductCard({
               ? formatMoney(fallback?.price, fallback?.currency)
               : "Price unavailable"}
           </div>
-          <button className="btn btn-primary" disabled={!hasPrice}>
-            {hasPrice ? "Buy" : "Unavailable"}
-          </button>
+          <Link className="btn btn-primary" href={`/product/${item.id}`}>
+            Open card
+          </Link>
         </div>
       </div>
     </div>
