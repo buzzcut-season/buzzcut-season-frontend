@@ -19,7 +19,7 @@ function formatPrice(price: string, currency: string): string {
   if (!Number.isFinite(value)) return `${price} ${currency}`;
 
   try {
-    return new Intl.NumberFormat("ru-RU", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
       maximumFractionDigits: 2,
@@ -66,7 +66,7 @@ export default function ProductPage({ params }: PageProps) {
         const numericId = Number(p.productId);
         if (!Number.isInteger(numericId) || numericId <= 0) {
           if (mounted) {
-            setError("Товар не найден");
+            setError("Product not found");
             setProduct(null);
             setResolvedId(null);
           }
@@ -85,7 +85,7 @@ export default function ProductPage({ params }: PageProps) {
       } catch (e) {
         if (!mounted) return;
         if (e instanceof ApiHttpError && e.status === 404) {
-          setError("Товар не найден");
+          setError("Product not found");
         } else {
           setError(asErrorMessage(e));
         }
@@ -130,7 +130,7 @@ export default function ProductPage({ params }: PageProps) {
           </div>
         ) : error ? (
           <div className="card p-6 border-red-500/25 bg-red-500/5">
-            <div className="text-sm font-medium text-red-700">Ошибка</div>
+            <div className="text-sm font-medium text-red-700">Error</div>
             <div className="text-sm text-red-700/80 mt-2">{error}</div>
           </div>
         ) : product ? (
@@ -174,7 +174,7 @@ export default function ProductPage({ params }: PageProps) {
                       </>
                     ) : (
                       <div className="absolute inset-0 grid place-items-center text-sm text-[var(--muted)]">
-                        Нет изображения
+                        No image available
                       </div>
                     )}
                   </div>
@@ -229,17 +229,17 @@ export default function ProductPage({ params }: PageProps) {
                         {formatPrice(selectedPrice.price, selectedPrice.currency)}
                       </div>
                     ) : (
-                      <div className="mt-2 text-sm text-zinc-300">Цена уточняется</div>
+                      <div className="mt-2 text-sm text-zinc-300">Price to be confirmed</div>
                     )}
                     <div className="mt-3 text-xs text-zinc-400">
-                      Итоговая валюта переключается в хедере страницы.
+                      Final currency is controlled in the page header.
                     </div>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-sm font-medium text-zinc-200">Доставка и оплата</div>
+                    <div className="text-sm font-medium text-zinc-200">Digital product details</div>
                     <p className="mt-2 text-sm text-zinc-400">
-                      Раздел в разработке. Здесь будут сроки доставки, способы оплаты и гарантии.
+                      Access terms, format, and usage information will appear in upcoming iterations.
                     </p>
                   </div>
                 </div>
@@ -250,31 +250,31 @@ export default function ProductPage({ params }: PageProps) {
               <section className="card p-5">
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 text-pink-300" />
-                  <h2 className="text-sm font-semibold">Рейтинг</h2>
+                  <h2 className="text-sm font-semibold">Rating</h2>
                 </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Пока нет данных о рейтинге. Появится после первых покупок.
+                  No rating data yet. It will appear after first purchases.
                 </p>
               </section>
               <section className="card p-5">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-pink-300" />
-                  <h2 className="text-sm font-semibold">Отзывы</h2>
+                  <h2 className="text-sm font-semibold">Reviews</h2>
                 </div>
-                <p className="mt-2 text-sm text-[var(--muted)]">Отзывы появятся позже.</p>
+                <p className="mt-2 text-sm text-[var(--muted)]">Reviews will be available later.</p>
               </section>
               <section className="card p-5">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4 text-pink-300" />
-                  <h2 className="text-sm font-semibold">Комментарии</h2>
+                  <h2 className="text-sm font-semibold">Comments</h2>
                 </div>
-                <p className="mt-2 text-sm text-[var(--muted)]">Комментарии еще не реализованы.</p>
+                <p className="mt-2 text-sm text-[var(--muted)]">Comments are not implemented yet.</p>
               </section>
             </div>
           </div>
         ) : (
           <div className="card p-6">
-            <div className="text-sm text-zinc-300">Товар не найден</div>
+            <div className="text-sm text-zinc-300">Product not found</div>
             {resolvedId ? <div className="mt-2 text-xs text-zinc-500">ID: {resolvedId}</div> : null}
           </div>
         )}
