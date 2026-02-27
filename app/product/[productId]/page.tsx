@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { AuthModal } from "@/components/AuthModal";
+import { Header } from "@/components/Header";
 import { ApiHttpError, asErrorMessage, getProductCard } from "@/lib/api";
+import { readAuth } from "@/lib/storage";
 import type { ProductCard as ProductCardType } from "@/lib/types";
 
 type PageProps = {
@@ -27,11 +30,29 @@ function formatPrice(price: string, currency: string): string {
 }
 
 export default function ProductPage({ params }: PageProps) {
+  const [authOpen, setAuthOpen] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
+
+  const refreshAuth = useCallback(() => {
+    setIsAuthed(!!readAuth()?.accessToken);
+  }, []);
+
   const [resolvedId, setResolvedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<ProductCardType | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    refreshAuth();
+  }, [refreshAuth]);
+
+  useEffect(() => {
+    if (isAuthed && authOpen) {
+      setAuthOpen(false);
+    }
+  }, [isAuthed, authOpen]);
 
   useEffect(() => {
     let mounted = true;
@@ -84,10 +105,21 @@ export default function ProductPage({ params }: PageProps) {
   }, [params]);
 
   const images = useMemo(() => product?.images ?? [], [product]);
-  const prices = useMemo(() => product?.prices ?? [], [product]);
+  const selectedPrice = useMemo(
+    () => product?.prices?.find((price) => price.currency === currency) ?? null,
+    [product, currency],
+  );
 
   return (
     <main className="min-h-screen pb-16">
+      <Header
+        onOpenAuth={() => setAuthOpen(true)}
+        onAuthChanged={refreshAuth}
+        isAuthed={isAuthed}
+        currency={currency}
+        onCurrencyChange={setCurrency}
+      />
+
       <section className="mx-auto max-w-7xl px-4 mt-8">
         <div className="mb-5">
           <Link href="/" className="btn">
@@ -108,78 +140,91 @@ export default function ProductPage({ params }: PageProps) {
             <div className="text-sm text-red-700/80 mt-2">{error}</div>
           </div>
         ) : product ? (
-          <div className="card p-5 md:p-6">
-            <div className="grid gap-6 md:grid-cols-[1.1fr,1fr]">
-              <div>
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/30">
-                  {activeImage ? (
-                    <Image
-                      src={activeImage}
-                      alt={product.name}
-                      fill
-                      unoptimized
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-contain"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 grid place-items-center text-sm text-[var(--muted)]">
-                      Нет изображения
-                    </div>
-                  )}
-                </div>
-
-                {images.length > 0 ? (
-                  <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
-                    {images.map((img) => {
-                      const isActive = img.image === activeImage;
-                      return (
-                        <button
-                          key={`${img.position}-${img.image}`}
-                          type="button"
-                          onClick={() => setActiveImage(img.image)}
-                          className={`relative aspect-square overflow-hidden rounded-lg border ${
-                            isActive
-                              ? "border-pink-400/70 ring-1 ring-pink-300/40"
-                              : "border-white/10"
-                          }`}
-                          aria-label={`Image ${img.position + 1}`}
-                        >
-                          <Image
-                            src={img.image}
-                            alt={`${product.name} ${img.position + 1}`}
-                            fill
-                            unoptimized
-                            sizes="120px"
-                            className="object-cover"
-                          />
-                        </button>
-                      );
-                    })}
+          <div className="space-y-6">
+            <div className="card p-5 md:p-6">
+              <div className="grid gap-6 md:grid-cols-[1.1fr,1fr]">
+                <div>
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/30">
+                    {activeImage ? (
+                      <Image
+                        src={activeImage}
+                        alt={product.name}
+                        fill
+                        unoptimized
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 grid place-items-center text-sm text-[var(--muted)]">
+                        Нет изображения
+                      </div>
+                    )}
                   </div>
-                ) : null}
-              </div>
 
-              <div>
-                <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
-                <p className="mt-3 text-sm text-zinc-200/90 whitespace-pre-wrap">{product.description}</p>
+                  {images.length > 0 ? (
+                    <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
+                      {images.map((img) => {
+                        const isActive = img.image === activeImage;
+                        return (
+                          <button
+                            key={`${img.position}-${img.image}`}
+                            type="button"
+                            onClick={() => setActiveImage(img.image)}
+                            className={`relative aspect-square overflow-hidden rounded-lg border ${
+                              isActive
+                                ? "border-pink-400/70 ring-1 ring-pink-300/40"
+                                : "border-white/10"
+                            }`}
+                            aria-label={`Image ${img.position + 1}`}
+                          >
+                            <Image
+                              src={img.image}
+                              alt={`${product.name} ${img.position + 1}`}
+                              fill
+                              unoptimized
+                              sizes="120px"
+                              className="object-cover"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
 
-                <div className="mt-5 text-sm text-zinc-300">Seller: {product.seller}</div>
+                <div>
+                  <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
+                  <p className="mt-3 text-sm text-zinc-200/90 whitespace-pre-wrap">{product.description}</p>
 
-                <div className="mt-5">
-                  <div className="text-sm font-medium">Prices</div>
-                  {prices.length === 0 ? (
-                    <div className="mt-2 text-sm text-[var(--muted)]">Цена уточняется</div>
-                  ) : (
-                    <ul className="mt-2 space-y-1 text-sm text-zinc-200">
-                      {prices.map((price) => (
-                        <li key={`${price.currency}-${price.price}`}>
-                          {price.currency}: {formatPrice(price.price, price.currency)}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="mt-5 text-sm text-zinc-300">Seller: {product.seller}</div>
+
+                  <div className="mt-5">
+                    <div className="text-sm font-medium">Price ({currency})</div>
+                    {selectedPrice ? (
+                      <div className="mt-2 text-lg font-semibold text-zinc-100">
+                        {formatPrice(selectedPrice.price, selectedPrice.currency)}
+                      </div>
+                    ) : (
+                      <div className="mt-2 text-sm text-[var(--muted)]">Цена уточняется</div>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <section className="card p-4">
+                <h2 className="text-sm font-semibold">Рейтинг</h2>
+                <p className="mt-2 text-sm text-[var(--muted)]">Пока нет данных о рейтинге.</p>
+              </section>
+              <section className="card p-4">
+                <h2 className="text-sm font-semibold">Отзывы</h2>
+                <p className="mt-2 text-sm text-[var(--muted)]">Отзывы появятся позже.</p>
+              </section>
+              <section className="card p-4">
+                <h2 className="text-sm font-semibold">Комментарии</h2>
+                <p className="mt-2 text-sm text-[var(--muted)]">Комментарии еще не реализованы.</p>
+              </section>
             </div>
           </div>
         ) : (
@@ -189,6 +234,12 @@ export default function ProductPage({ params }: PageProps) {
           </div>
         )}
       </section>
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthChanged={refreshAuth}
+      />
     </main>
   );
 }
