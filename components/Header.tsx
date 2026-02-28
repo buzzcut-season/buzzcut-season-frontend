@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogIn, User } from "lucide-react";
-import { asErrorMessage, createSeller } from "@/lib/api";
+import { ApiHttpError, asErrorMessage, createSeller, getAccountMe, getSellerMe } from "@/lib/api";
 import { clearAuth } from "@/lib/storage";
+import type { AccountMe, SellerMe } from "@/lib/types";
 
 const CURRENCIES = ["RUB", "USD", "EUR"] as const;
 
@@ -23,6 +24,10 @@ export function Header({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sellerBusy, setSellerBusy] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [account, setAccount] = useState<AccountMe | null>(null);
+  const [seller, setSeller] = useState<SellerMe | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -36,19 +41,93 @@ export function Header({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!isAuthed) {
+      setProfileLoading(false);
+      setProfileError(null);
+      setAccount(null);
+      setSeller(null);
+      return;
+    }
+
+    let cancelled = false;
+    const loadProfile = async () => {
+      setProfileLoading(true);
+      setProfileError(null);
+      try {
+        try {
+          const accountMe = await getAccountMe();
+          if (cancelled) return;
+          setAccount(accountMe);
+        } catch (e) {
+          if (cancelled) return;
+          if (e instanceof ApiHttpError && (e.status === 401 || e.status === 403)) {
+            onAuthChanged();
+            return;
+          }
+          setProfileError(asErrorMessage(e));
+        }
+
+        try {
+          const sellerMe = await getSellerMe();
+          if (cancelled) return;
+          setSeller(sellerMe);
+        } catch (e) {
+          if (cancelled) return;
+          if (e instanceof ApiHttpError && e.status === 404) {
+            setSeller(null);
+            return;
+          }
+          if (e instanceof ApiHttpError && (e.status === 401 || e.status === 403)) {
+            onAuthChanged();
+            return;
+          }
+          setProfileError(asErrorMessage(e));
+        }
+      } finally {
+        if (!cancelled) {
+          setProfileLoading(false);
+        }
+      }
+    };
+
+    void loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthed, onAuthChanged]);
+
   function logout() {
     clearAuth();
+    setProfileError(null);
+    setAccount(null);
+    setSeller(null);
     onAuthChanged();
     setMenuOpen(false);
   }
 
   async function becomeSeller() {
     if (sellerBusy) return;
+    if (seller) {
+      window.alert(`Seller already exists: ${seller.name}`);
+      return;
+    }
     const name = window.prompt("Seller name");
-    if (!name || !name.trim()) return;
+    if (name === null) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      window.alert("Seller name is required.");
+      return;
+    }
     setSellerBusy(true);
     try {
-      await createSeller({ name: name.trim() });
+      await createSeller({ name: trimmedName });
+      try {
+        const sellerMe = await getSellerMe();
+        setSeller(sellerMe);
+      } catch {
+        setSeller(null);
+      }
       setMenuOpen(false);
       window.alert("You are now a seller.");
     } catch (e) {
@@ -112,6 +191,21 @@ export function Header({
                   className="absolute right-0 mt-2 w-48 rounded-2xl border border-black/10 bg-white/95 text-zinc-900 shadow-[0_16px_30px_rgba(31,26,22,0.12)] p-2 text-sm z-50"
                   role="menu"
                 >
+                  {account && (
+                    <div className="px-3 py-2 text-xs text-zinc-600 break-all">
+                      {account.email}
+                    </div>
+                  )}
+                  {seller && (
+                    <div className="px-3 py-2 text-xs text-zinc-600">
+                      Seller: {seller.name}
+                    </div>
+                  )}
+                  {profileError && (
+                    <div className="px-3 py-2 text-xs text-red-600">
+                      {profileError}
+                    </div>
+                  )}
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Profile
                   </button>
@@ -133,9 +227,9 @@ export function Header({
                     className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5 disabled:opacity-60 disabled:cursor-not-allowed"
                     role="menuitem"
                     onClick={becomeSeller}
-                    disabled={sellerBusy}
+                    disabled={sellerBusy || profileLoading || !!seller}
                   >
-                    {sellerBusy ? "Creating seller..." : "Become a seller"}
+                    {seller ? "Seller already created" : sellerBusy ? "Creating seller..." : "Become a seller"}
                   </button>
                   <button
                     className="w-full rounded-xl px-3 py-2 text-left text-pink-600 hover:bg-pink-500/10"

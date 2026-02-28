@@ -1,4 +1,5 @@
 import type {
+  AccountMe,
   AuthenticateRequest,
   AuthenticateResponse,
   CategoryTreeResponse,
@@ -16,6 +17,7 @@ import type {
   SendCodeRequest,
   SendCodeResponse,
   SellerCreateRequest,
+  SellerMe,
   UpdateDraftRequest,
 } from "./types";
 import { clearAuth, readAuth, updateAuthAccessToken } from "./storage";
@@ -129,6 +131,10 @@ export async function authenticate(body: AuthenticateRequest): Promise<Authentic
   });
 }
 
+export async function getAccountMe(): Promise<AccountMe> {
+  return request<AccountMe>("/api/v1/accounts/me", { method: "GET" });
+}
+
 export async function getProductFeed(params?: { page?: number; size?: number }): Promise<ProductFeedResponse> {
   const page = params?.page ?? 0;
   const size = params?.size ?? 24;
@@ -149,6 +155,10 @@ export async function createSeller(body: SellerCreateRequest): Promise<unknown> 
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+export async function getSellerMe(): Promise<SellerMe> {
+  return request<SellerMe>("/api/v1/sellers/me", { method: "GET" });
 }
 
 export async function createDraft(): Promise<CreateDraftResponse> {

@@ -39,6 +39,22 @@ export type SellerCreateRequest = {
   name: string;
 };
 
+export type AccountMe = {
+  id: number;
+  email: string;
+};
+
+export type SellerStatus = "ACTIVE" | string;
+
+export type SellerMe = {
+  id: number;
+  name: string;
+  userId: number;
+  status: SellerStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ProductFeedItem = {
   id: number;
   name: string;
