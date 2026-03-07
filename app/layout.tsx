@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   return (
-    <html lang="ru">
+    <html lang="en">
       <body className="bg-aurora">
         {recaptchaKey ? (
           <Script

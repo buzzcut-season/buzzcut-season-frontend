@@ -2,10 +2,13 @@ import type {
   AccountMe,
   AuthenticateRequest,
   AuthenticateResponse,
+  ChatMessagesResponse,
   CategoryTreeResponse,
   ConfirmDraftImageRequest,
+  CreateOrderRequest,
   CreateDraftResponse,
   HealthResponse,
+  OrderResponse,
   PresignDraftImageRequest,
   PresignDraftImageResponse,
   ProductCard,
@@ -225,6 +228,39 @@ export async function publishDraft(draftId: number): Promise<PublishDraftRespons
 
 export async function cancelDraft(draftId: number): Promise<CreateDraftResponse> {
   return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/cancel`, { method: "POST" });
+}
+
+export async function createOrder(body: CreateOrderRequest): Promise<OrderResponse> {
+  return request<OrderResponse>("/api/v1/orders/create", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function payOrder(orderId: number): Promise<OrderResponse> {
+  return request<OrderResponse>(`/api/v1/orders/${orderId}/pay`, {
+    method: "POST",
+  });
+}
+
+export async function getOrder(orderId: number): Promise<OrderResponse> {
+  return request<OrderResponse>(`/api/v1/orders/${orderId}`, {
+    method: "GET",
+  });
+}
+
+export async function getOrderChatMessages(
+  orderId: number,
+  params?: { size?: number; beforeMessageId?: number },
+): Promise<ChatMessagesResponse> {
+  const qs = new URLSearchParams();
+  qs.set("size", String(params?.size ?? 50));
+  if (params?.beforeMessageId != null) {
+    qs.set("beforeMessageId", String(params.beforeMessageId));
+  }
+  return request<ChatMessagesResponse>(`/api/v1/orders/${orderId}/chat/messages?${qs.toString()}`, {
+    method: "GET",
+  });
 }
 
 export { asErrorMessage };

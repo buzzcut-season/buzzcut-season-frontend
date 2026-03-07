@@ -151,3 +151,38 @@ export type PublishDraftResponse = {
   draftId: number;
   productId: number;
 };
+
+export type OrderStatus = "CREATED" | "PAID" | string;
+
+export type CreateOrderRequest = {
+  productId: number;
+  currency: string;
+};
+
+export type OrderResponse = {
+  orderId: number;
+  productId: number;
+  currency: string;
+  status: OrderStatus;
+  amount?: string | null;
+  chatId?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type ChatParticipant = "BUYER" | "SELLER" | string;
+
+export type ChatMessage = {
+  id: number;
+  participant: ChatParticipant;
+  body: string;
+  createdAt: string;
+};
+
+export type ChatMessagesResponse = {
+  chatId: number;
+  participant: ChatParticipant;
+  size: number;
+  nextCursorMessageId: number | null;
+  messages: ChatMessage[];
+};

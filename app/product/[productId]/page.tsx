@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, MessageCircle, Star, Store, Users } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
-import { ApiHttpError, asErrorMessage, getProductCard } from "@/lib/api";
+import { ApiHttpError, asErrorMessage, createOrder, getProductCard } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
 import type { ProductCard as ProductCardType } from "@/lib/types";
 
@@ -30,6 +31,7 @@ function formatPrice(price: string, currency: string): string {
 }
 
 export default function ProductPage({ params }: PageProps) {
+  const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
@@ -41,6 +43,8 @@ export default function ProductPage({ params }: PageProps) {
   const [resolvedId, setResolvedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState<string | null>(null);
   const [product, setProduct] = useState<ProductCardType | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
 
@@ -109,6 +113,28 @@ export default function ProductPage({ params }: PageProps) {
     () => product?.prices?.find((price) => price.currency === currency) ?? null,
     [product, currency],
   );
+
+  const handleBuy = useCallback(async () => {
+    if (!product) return;
+    if (!isAuthed) {
+      setAuthOpen(true);
+      return;
+    }
+
+    try {
+      setBuying(true);
+      setBuyError(null);
+      const order = await createOrder({
+        productId: product.id,
+        currency,
+      });
+      router.push(`/orders/${order.orderId}`);
+    } catch (e) {
+      setBuyError(asErrorMessage(e));
+    } finally {
+      setBuying(false);
+    }
+  }, [currency, isAuthed, product, router]);
 
   return (
     <main className="min-h-screen pb-16">
@@ -234,6 +260,21 @@ export default function ProductPage({ params }: PageProps) {
                     <div className="mt-3 text-xs text-zinc-400">
                       Final currency is controlled in the page header.
                     </div>
+                    <button className="btn btn-primary mt-4 w-full" onClick={handleBuy} disabled={buying}>
+                      {buying ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Creating order...
+                        </>
+                      ) : (
+                        "Buy"
+                      )}
+                    </button>
+                    {buyError ? (
+                      <div className="mt-2 text-xs text-red-200">
+                        {buyError}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
