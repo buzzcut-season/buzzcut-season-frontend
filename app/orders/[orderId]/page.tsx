@@ -378,6 +378,14 @@ export default function OrderPage({ params }: PageProps) {
           ),
         );
         setChatInput("");
+        // Some backends do not echo sender messages over SUBSCRIBE.
+        // Pulling the latest page right after SEND keeps UI consistent.
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        const latest = await getOrderChatMessages(resolvedOrderId, { size: 50 });
+        const normalized = [...(latest.messages ?? [])].reverse();
+        setMessages((prev) => mergeMessages(prev, normalized));
+        setChatCursor(latest.nextCursorMessageId);
+        setChatHasMore(latest.nextCursorMessageId !== null);
       } finally {
         setSendingMessage(false);
       }
