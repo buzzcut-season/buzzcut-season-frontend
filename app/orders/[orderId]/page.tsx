@@ -285,9 +285,8 @@ export default function OrderPage({ params }: PageProps) {
         const frameRaw = wsBufferRef.current.slice(0, idx);
         wsBufferRef.current = wsBufferRef.current.slice(idx + 1);
 
-        const cleaned = frameRaw.trim();
-        if (cleaned.length > 0) {
-          const frame = parseStompFrame(cleaned);
+        if (frameRaw.trim().length > 0) {
+          const frame = parseStompFrame(frameRaw);
           if (frame) {
             if (frame.command === "CONNECTED") {
               setWsConnected(true);
