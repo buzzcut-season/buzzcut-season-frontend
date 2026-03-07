@@ -551,13 +551,17 @@ export default function OrderPage({ params }: PageProps) {
                 <form className="mt-3 flex gap-2" onSubmit={onSendMessage}>
                   <input
                     className="input"
-                    placeholder="Type a message..."
+                    placeholder={wsConnected ? "Type a message..." : "Type a message (sending is available when realtime reconnects)"}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     maxLength={4000}
-                    disabled={!wsConnected || sendingMessage}
+                    disabled={sendingMessage}
                   />
-                  <button className="btn btn-primary" type="submit" disabled={!wsConnected || sendingMessage}>
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={!wsConnected || sendingMessage || chatInput.trim().length === 0}
+                  >
                     {sendingMessage ? "Sending..." : "Send"}
                   </button>
                 </form>
