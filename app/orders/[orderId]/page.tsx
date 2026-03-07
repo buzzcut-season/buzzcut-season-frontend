@@ -122,6 +122,22 @@ export default function OrderPage({ params }: PageProps) {
 
   const wsRef = useRef<WebSocket | null>(null);
   const wsBufferRef = useRef("");
+  const chatListRef = useRef<HTMLDivElement | null>(null);
+  const shouldFollowRef = useRef(true);
+  const prevMessagesCountRef = useRef(0);
+
+  const isNearBottom = useCallback((element: HTMLDivElement) => {
+    return element.scrollHeight - element.scrollTop - element.clientHeight <= 72;
+  }, []);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
+    const list = chatListRef.current;
+    if (!list) return;
+    list.scrollTo({
+      top: list.scrollHeight,
+      behavior,
+    });
+  }, []);
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
@@ -338,6 +354,25 @@ export default function OrderPage({ params }: PageProps) {
     };
   }, [order?.status, resolvedOrderId]);
 
+  useEffect(() => {
+    const list = chatListRef.current;
+    if (!list) return;
+
+    const previousCount = prevMessagesCountRef.current;
+    const currentCount = messages.length;
+    const firstRenderWithData = previousCount === 0 && currentCount > 0;
+    const gotNewMessages = currentCount > previousCount;
+
+    if (firstRenderWithData) {
+      scrollToBottom("auto");
+      shouldFollowRef.current = true;
+    } else if (gotNewMessages && shouldFollowRef.current) {
+      scrollToBottom("smooth");
+    }
+
+    prevMessagesCountRef.current = currentCount;
+  }, [messages, scrollToBottom]);
+
   const onPay = useCallback(async () => {
     if (!resolvedOrderId || paying) return;
     try {
@@ -377,6 +412,8 @@ export default function OrderPage({ params }: PageProps) {
           ),
         );
         setChatInput("");
+        shouldFollowRef.current = true;
+        scrollToBottom("smooth");
         // Some backends do not echo sender messages over SUBSCRIBE.
         // Pulling the latest page right after SEND keeps UI consistent.
         await new Promise((resolve) => setTimeout(resolve, 250));
@@ -510,7 +547,7 @@ export default function OrderPage({ params }: PageProps) {
                   </div>
                 ) : null}
 
-                <div className="mt-4 rounded-2xl border border-white/10 bg-gradient-to-b from-black/30 to-black/15 p-3">
+                <div className="mt-4 h-[460px] rounded-2xl border border-white/10 bg-gradient-to-b from-black/30 to-black/15 p-3 md:h-[520px]">
                   {chatHasMore ? (
                     <div className="mb-3 flex justify-center">
                       <button className="btn" onClick={loadOlderMessages} disabled={chatLoadingMore}>
@@ -526,7 +563,13 @@ export default function OrderPage({ params }: PageProps) {
                     </div>
                   ) : null}
 
-                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                  <div
+                    ref={chatListRef}
+                    className="h-[calc(100%-52px)] space-y-2 overflow-y-auto pr-1"
+                    onScroll={(event) => {
+                      shouldFollowRef.current = isNearBottom(event.currentTarget);
+                    }}
+                  >
                     {chatLoading ? (
                       <div className="py-10 text-center text-sm text-zinc-400">Loading chat...</div>
                     ) : messages.length === 0 ? (
@@ -535,19 +578,20 @@ export default function OrderPage({ params }: PageProps) {
                       messages.map((message) => {
                         const mine = message.participant === "BUYER";
                         return (
-                          <div
-                            key={message.id}
-                            className={`rounded-xl border px-3 py-2 text-sm ${
-                              mine
-                                ? "ml-8 border-pink-400/25 bg-gradient-to-br from-pink-500/18 to-violet-500/12 text-zinc-100"
-                                : "mr-8 border-white/10 bg-white/5 text-zinc-200"
-                            }`}
-                          >
-                            <div className="mb-1 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
-                              <span>{message.participant}</span>
-                              <span>{new Date(message.createdAt).toLocaleString()}</span>
+                          <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                            <div
+                              className={`w-fit max-w-[78%] rounded-2xl border px-3 py-2 text-sm md:max-w-[72%] ${
+                                mine
+                                  ? "border-pink-400/25 bg-gradient-to-br from-pink-500/18 to-violet-500/12 text-zinc-100"
+                                  : "border-white/10 bg-white/5 text-zinc-200"
+                              }`}
+                            >
+                              <div className="mb-1 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
+                                <span>{message.participant}</span>
+                                <span>{new Date(message.createdAt).toLocaleString()}</span>
+                              </div>
+                              <div className="whitespace-pre-wrap break-words">{message.body}</div>
                             </div>
-                            <div className="whitespace-pre-wrap break-words">{message.body}</div>
                           </div>
                         );
                       })
