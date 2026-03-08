@@ -6,6 +6,6 @@ type PageProps = {
   params: Promise<{ orderId: string }>;
 };
 
-export default function BuyerOrderPage({ params }: PageProps) {
-  return <OrderChatPageClient params={params} role="buyer" />;
+export default function SellerOrderPage({ params }: PageProps) {
+  return <OrderChatPageClient params={params} role="seller" />;
 }

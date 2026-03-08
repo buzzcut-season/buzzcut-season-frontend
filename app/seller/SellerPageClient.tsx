@@ -109,6 +109,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   const [step, setStep] = useState<"details" | "images">("details");
   const [draft, setDraft] = useState<SellerDraft | null>(null);
   const [form, setForm] = useState<DraftFormState>(EMPTY_FORM);
+  const [orderIdInput, setOrderIdInput] = useState("");
 
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -312,6 +313,16 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     }
   }
 
+  function onOpenSellerOrder() {
+    const orderId = Number(orderIdInput);
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      setError("Enter valid Order ID");
+      return;
+    }
+    setError(null);
+    router.push(`/seller/orders/${orderId}`);
+  }
+
   return (
     <main className="min-h-screen pb-16">
       <Header
@@ -353,6 +364,24 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                 >
                   {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   {creating ? "Creating..." : "Create product"}
+                </button>
+              </div>
+            </div>
+
+            <div className="card p-6 space-y-3">
+              <div className="text-lg font-semibold">Seller Orders</div>
+              <div className="text-sm text-zinc-300">
+                Open order chat as seller by order ID.
+              </div>
+              <div className="flex gap-2">
+                <input
+                  className="input"
+                  placeholder="Order ID"
+                  value={orderIdInput}
+                  onChange={(e) => setOrderIdInput(e.target.value)}
+                />
+                <button className="btn btn-primary" type="button" onClick={onOpenSellerOrder}>
+                  Open order
                 </button>
               </div>
             </div>
