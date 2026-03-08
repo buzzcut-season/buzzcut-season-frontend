@@ -141,7 +141,7 @@ export function Header({
     <header className="mx-auto max-w-7xl px-4 pt-10">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link href="/" className="inline-block text-3xl font-semibold tracking-tight hover:opacity-90 transition-opacity">
+          <Link href="/" className="inline-block text-3xl font-semibold tracking-tight">
             Buzzcut Season <span className="text-pink-400">Marketplace</span>
           </Link>
           <div className="text-sm text-[var(--muted)] mt-1">
