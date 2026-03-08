@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -20,7 +20,7 @@ function findCategoryNameBySlug(nodes: CategoryNode[], slug: string): string | n
   return null;
 }
 
-export default function Page() {
+function HomePageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -231,5 +231,13 @@ export default function Page() {
         onAuthChanged={refreshAuth}
       />
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<main className="min-h-screen pb-16" />}>
+      <HomePageContent />
+    </Suspense>
   );
 }
