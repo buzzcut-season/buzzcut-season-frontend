@@ -124,7 +124,7 @@ export default function Page() {
       qs.delete("category");
     }
     const query = qs.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
 
   return (
