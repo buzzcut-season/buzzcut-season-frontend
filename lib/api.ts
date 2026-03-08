@@ -173,6 +173,18 @@ export async function getProductFeed(params?: { page?: number; size?: number }):
   return request<ProductFeedResponse>(`/api/v1/product-feed?${qs}`, { method: "GET" });
 }
 
+export async function getProductFeedByCategorySlug(
+  slug: string,
+  params?: { page?: number; size?: number },
+): Promise<ProductFeedResponse> {
+  const page = params?.page ?? 0;
+  const size = params?.size ?? 20;
+  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
+  return request<ProductFeedResponse>(`/api/v1/product-feed/category/${encodeURIComponent(slug)}?${qs}`, {
+    method: "GET",
+  });
+}
+
 export async function getProductCard(productId: number): Promise<ProductCard> {
   return request<ProductCard>(`/api/v1/product-card/${productId}`, { method: "GET" });
 }

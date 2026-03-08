@@ -93,6 +93,7 @@ export type ProductCard = {
 export type CategoryNode = {
   id: number;
   name: string;
+  slug: string;
   children: CategoryNode[];
 };
 

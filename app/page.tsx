@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryTree } from "@/components/CategoryTree";
-import { asErrorMessage, getCategoryTree, getProductFeed } from "@/lib/api";
+import { asErrorMessage, getCategoryTree, getProductFeed, getProductFeedByCategorySlug } from "@/lib/api";
 import type { CategoryNode, ProductFeedItem } from "@/lib/types";
 import { readAuth } from "@/lib/storage";
 
@@ -21,7 +21,10 @@ export default function Page() {
 
   const [items, setItems] = useState<ProductFeedItem[]>([]);
   const [page, setPage] = useState(0);
-  const size = 24;
+  const [hasMore, setHasMore] = useState(true);
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
+  const size = 20;
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -31,7 +34,7 @@ export default function Page() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canLoadMore = items.length > 0;
+  const canLoadMore = hasMore;
 
   useEffect(() => {
     refreshAuth();
@@ -52,17 +55,20 @@ export default function Page() {
         setLoadingMore(true);
       }
 
-      const res = await getProductFeed({ page: p, size });
+      const res = selectedCategorySlug
+        ? await getProductFeedByCategorySlug(selectedCategorySlug, { page: p, size })
+        : await getProductFeed({ page: p, size });
       const newItems = res.items ?? [];
       setItems((prev) => (mode === "replace" ? newItems : [...prev, ...newItems]));
       setPage(p);
+      setHasMore(newItems.length >= size);
     } catch (e) {
       setError(asErrorMessage(e));
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [size]);
+  }, [selectedCategorySlug, size]);
 
   useEffect(() => {
     load(0, "replace");
@@ -110,8 +116,18 @@ export default function Page() {
 
             <div className="space-y-1">
               <div className="text-sm font-semibold tracking-tight text-zinc-100">Catalog</div>
-              <div className="text-xs text-zinc-400/90">Browse categories</div>
+              <div className="text-xs text-zinc-400/90">
+                {selectedCategoryName ? `Category: ${selectedCategoryName}` : "Browse categories"}
+              </div>
             </div>
+            {selectedCategorySlug ? (
+              <button className="btn mt-3 w-fit" type="button" onClick={() => {
+                setSelectedCategorySlug(null);
+                setSelectedCategoryName(null);
+              }}>
+                All products
+              </button>
+            ) : null}
             <div className="mt-4">
               {categoriesLoading ? (
                 <div className="flex items-center gap-2 text-[var(--muted)]">
@@ -125,7 +141,14 @@ export default function Page() {
               ) : categories.length === 0 ? (
                 <div className="text-sm text-[var(--muted)]">No categories yet</div>
               ) : (
-                <CategoryTree categories={categories} />
+                <CategoryTree
+                  categories={categories}
+                  selectedSlug={selectedCategorySlug}
+                  onSelectCategory={(node) => {
+                    setSelectedCategorySlug(node.slug);
+                    setSelectedCategoryName(node.name);
+                  }}
+                />
               )}
             </div>
           </div>
