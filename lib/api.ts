@@ -8,6 +8,7 @@ import type {
   CreateOrderRequest,
   CreateDraftResponse,
   HealthResponse,
+  OrderListResponse,
   OrderResponse,
   PresignDraftImageRequest,
   PresignDraftImageResponse,
@@ -62,6 +63,10 @@ type OrderResponseWire = Omit<OrderResponse, "displaySettings"> & {
     productName?: string | null;
     coverImage?: string | null;
   } | null;
+};
+
+type OrderListResponseWire = {
+  orders?: OrderResponseWire[] | null;
 };
 
 function buildHeaders(init?: RequestInit, accessToken?: string): Headers {
@@ -130,6 +135,12 @@ function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
       productName: order.displaySettings?.productName ?? null,
       coverImage: order.displaySettings?.coverImage ?? null,
     },
+  };
+}
+
+function normalizeOrderListResponse(response: OrderListResponseWire): OrderListResponse {
+  return {
+    orders: (response.orders ?? []).map(normalizeOrderResponse),
   };
 }
 
@@ -274,6 +285,13 @@ export async function getSellerOrder(orderId: number): Promise<OrderResponse> {
     method: "GET",
   });
   return normalizeOrderResponse(response);
+}
+
+export async function getSellerOrders(): Promise<OrderListResponse> {
+  const response = await request<OrderListResponseWire>("/api/seller/v1/orders", {
+    method: "GET",
+  });
+  return normalizeOrderListResponse(response);
 }
 
 export async function getOrderChatMessages(

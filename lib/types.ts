@@ -177,6 +177,10 @@ export type OrderResponse = {
   displaySettings: OrderDisplaySettings;
 };
 
+export type OrderListResponse = {
+  orders: OrderResponse[];
+};
+
 export type ChatParticipant = "BUYER" | "SELLER" | string;
 
 export type ChatMessage = {

@@ -14,13 +14,14 @@ import {
   deleteDraftImage,
   getCategoryTree,
   getDraft,
+  getSellerOrders,
   presignDraftImage,
   publishDraft,
   updateDraft,
   uploadFileToPresignedUrl,
 } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
-import type { CategoryNode, SellerDraft } from "@/lib/types";
+import type { CategoryNode, OrderResponse, SellerDraft } from "@/lib/types";
 
 type DraftFormState = {
   name: string;
@@ -53,6 +54,26 @@ function normalizePrice(value: string): string | null {
   const parsed = Number(cleaned);
   if (!Number.isFinite(parsed) || parsed < 0) return null;
   return parsed.toFixed(2);
+}
+
+function formatOrderAmount(amount: number, currency: string, precision: number): string {
+  if (!Number.isFinite(amount)) return "Price unavailable";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(precision)} ${currency}`;
+  }
+}
+
+function getOrderTitle(order: OrderResponse): string {
+  const title = order.displaySettings.productName?.trim();
+  if (title) return title;
+  return `#${order.orderId}`;
 }
 
 function draftFormStorageKey(draftId: number): string {
@@ -109,7 +130,9 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   const [step, setStep] = useState<"details" | "images">("details");
   const [draft, setDraft] = useState<SellerDraft | null>(null);
   const [form, setForm] = useState<DraftFormState>(EMPTY_FORM);
-  const [orderIdInput, setOrderIdInput] = useState("");
+  const [sellerOrders, setSellerOrders] = useState<OrderResponse[]>([]);
+  const [sellerOrdersLoading, setSellerOrdersLoading] = useState(false);
+  const [sellerOrdersError, setSellerOrdersError] = useState<string | null>(null);
 
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -148,6 +171,20 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
       setError(asErrorMessage(e));
     }
   }, [fillForm]);
+
+  const refreshSellerOrders = useCallback(async () => {
+    setSellerOrdersLoading(true);
+    setSellerOrdersError(null);
+    try {
+      const response = await getSellerOrders();
+      setSellerOrders(response.orders ?? []);
+    } catch (e) {
+      setSellerOrdersError(asErrorMessage(e));
+      setSellerOrders([]);
+    } finally {
+      setSellerOrdersLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     setDraftId(initialDraftId);
@@ -208,6 +245,16 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     if (!isAuthed || !draftId || step !== "images") return;
     void refreshDraft(draftId);
   }, [isAuthed, draftId, step, refreshDraft]);
+
+  useEffect(() => {
+    if (!isAuthed) {
+      setSellerOrders([]);
+      setSellerOrdersError(null);
+      setSellerOrdersLoading(false);
+      return;
+    }
+    void refreshSellerOrders();
+  }, [isAuthed, refreshSellerOrders]);
 
   async function onCreateDraft() {
     if (creating) return;
@@ -313,16 +360,6 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     }
   }
 
-  function onOpenSellerOrder() {
-    const orderId = Number(orderIdInput);
-    if (!Number.isInteger(orderId) || orderId <= 0) {
-      setError("Enter valid Order ID");
-      return;
-    }
-    setError(null);
-    router.push(`/seller/orders/${orderId}`);
-  }
-
   return (
     <main className="min-h-screen pb-16">
       <Header
@@ -370,20 +407,48 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
 
             <div className="card p-6 space-y-3">
               <div className="text-lg font-semibold">Seller Orders</div>
-              <div className="text-sm text-zinc-300">
-                Open order chat as seller by order ID.
-              </div>
-              <div className="flex gap-2">
-                <input
-                  className="input"
-                  placeholder="Order ID"
-                  value={orderIdInput}
-                  onChange={(e) => setOrderIdInput(e.target.value)}
-                />
-                <button className="btn btn-primary" type="button" onClick={onOpenSellerOrder}>
-                  Open order
-                </button>
-              </div>
+              {sellerOrdersLoading ? (
+                <div className="text-sm text-zinc-300">Loading orders...</div>
+              ) : sellerOrdersError ? (
+                <div className="text-sm text-red-300">{sellerOrdersError}</div>
+              ) : sellerOrders.length === 0 ? (
+                <div className="text-sm text-zinc-400">No orders yet</div>
+              ) : (
+                <div className="grid gap-3">
+                  {sellerOrders.map((order) => (
+                    <button
+                      key={order.orderId}
+                      type="button"
+                      className="rounded-xl border border-white/10 bg-black/20 p-3 text-left hover:border-white/25 transition"
+                      onClick={() => router.push(`/seller/orders/${order.orderId}`)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-zinc-100">{getOrderTitle(order)}</div>
+                          <div className="text-xs text-zinc-400">
+                            Order #{order.orderId} · {order.status}
+                          </div>
+                          <div className="text-xs text-zinc-400">
+                            {formatOrderAmount(order.amount, order.currency, order.precision)}
+                          </div>
+                        </div>
+                        {order.displaySettings.coverImage ? (
+                          <div className="relative h-16 w-24 overflow-hidden rounded-lg border border-white/10">
+                            <Image
+                              src={order.displaySettings.coverImage}
+                              alt={getOrderTitle(order)}
+                              fill
+                              unoptimized
+                              sizes="96px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {error ? (
