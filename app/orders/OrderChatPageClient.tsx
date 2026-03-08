@@ -512,7 +512,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                       fill
                       unoptimized
                       sizes="(max-width: 1024px) 100vw, 33vw"
-                      className="object-cover"
+                      className="object-contain p-2"
                     />
                   </div>
                 ) : null}

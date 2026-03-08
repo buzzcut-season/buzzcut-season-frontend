@@ -141,15 +141,18 @@ export function Header({
     <header className="mx-auto max-w-7xl px-4 pt-10">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="text-3xl font-semibold tracking-tight">
+          <Link href="/" className="inline-block text-3xl font-semibold tracking-tight hover:opacity-90 transition-opacity">
             Buzzcut Season <span className="text-pink-400">Marketplace</span>
-          </div>
+          </Link>
           <div className="text-sm text-[var(--muted)] mt-1">
             Marketplace for the chosen, by ancient right
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Link href="/" className="btn">
+            Home
+          </Link>
           <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1 shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_10px_20px_rgba(0,0,0,0.35)]">
             {CURRENCIES.map((code) => {
               const active = currency === code;
