@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
@@ -10,7 +11,20 @@ import { asErrorMessage, getCategoryTree, getProductFeed, getProductFeedByCatego
 import type { CategoryNode, ProductFeedItem } from "@/lib/types";
 import { readAuth } from "@/lib/storage";
 
+function findCategoryNameBySlug(nodes: CategoryNode[], slug: string): string | null {
+  for (const node of nodes) {
+    if (node.slug === slug) return node.name;
+    const nested = findCategoryNameBySlug(node.children, slug);
+    if (nested) return nested;
+  }
+  return null;
+}
+
 export default function Page() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
@@ -23,7 +37,6 @@ export default function Page() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null);
-  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const size = 20;
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
@@ -35,10 +48,23 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
 
   const canLoadMore = hasMore;
+  const selectedCategoryName = useMemo(() => {
+    if (!selectedCategorySlug) return null;
+    return findCategoryNameBySlug(categories, selectedCategorySlug);
+  }, [categories, selectedCategorySlug]);
 
   useEffect(() => {
     refreshAuth();
   }, []);
+
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get("category");
+    if (!categoryFromUrl) {
+      setSelectedCategorySlug(null);
+      return;
+    }
+    setSelectedCategorySlug(categoryFromUrl);
+  }, [searchParams]);
 
   useEffect(() => {
     if (isAuthed && authOpen) {
@@ -90,6 +116,17 @@ export default function Page() {
     loadCategories();
   }, []);
 
+  const updateCategoryInUrl = useCallback((nextSlug: string | null) => {
+    const qs = new URLSearchParams(searchParams.toString());
+    if (nextSlug) {
+      qs.set("category", nextSlug);
+    } else {
+      qs.delete("category");
+    }
+    const query = qs.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
   return (
     <main className="min-h-screen pb-16">
       <Header
@@ -122,8 +159,7 @@ export default function Page() {
             </div>
             {selectedCategorySlug ? (
               <button className="btn mt-3 w-fit" type="button" onClick={() => {
-                setSelectedCategorySlug(null);
-                setSelectedCategoryName(null);
+                updateCategoryInUrl(null);
               }}>
                 All products
               </button>
@@ -145,8 +181,7 @@ export default function Page() {
                   categories={categories}
                   selectedSlug={selectedCategorySlug}
                   onSelectCategory={(node) => {
-                    setSelectedCategorySlug(node.slug);
-                    setSelectedCategoryName(node.name);
+                    updateCategoryInUrl(node.slug);
                   }}
                 />
               )}
