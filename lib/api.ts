@@ -57,6 +57,13 @@ function asErrorMessage(err: unknown): string {
 
 const REFRESH_PATH = "/api/v1/accounts/refresh";
 
+type OrderResponseWire = Omit<OrderResponse, "displaySettings"> & {
+  displaySettings?: {
+    productName?: string | null;
+    coverImage?: string | null;
+  } | null;
+};
+
 function buildHeaders(init?: RequestInit, accessToken?: string): Headers {
   const headers = new Headers(init?.headers ?? {});
   if (!headers.has("content-type")) {
@@ -114,6 +121,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return (await res.json()) as T;
+}
+
+function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
+  return {
+    ...order,
+    displaySettings: {
+      productName: order.displaySettings?.productName ?? null,
+      coverImage: order.displaySettings?.coverImage ?? null,
+    },
+  };
 }
 
 export async function getHealth(): Promise<HealthResponse> {
@@ -231,22 +248,32 @@ export async function cancelDraft(draftId: number): Promise<CreateDraftResponse>
 }
 
 export async function createOrder(body: CreateOrderRequest): Promise<OrderResponse> {
-  return request<OrderResponse>("/api/v1/orders/create", {
+  const response = await request<OrderResponseWire>("/api/v1/orders/create", {
     method: "POST",
     body: JSON.stringify(body),
   });
+  return normalizeOrderResponse(response);
 }
 
 export async function payOrder(orderId: number): Promise<OrderResponse> {
-  return request<OrderResponse>(`/api/v1/orders/${orderId}/pay`, {
+  const response = await request<OrderResponseWire>(`/api/v1/orders/${orderId}/pay`, {
     method: "POST",
   });
+  return normalizeOrderResponse(response);
 }
 
 export async function getOrder(orderId: number): Promise<OrderResponse> {
-  return request<OrderResponse>(`/api/v1/orders/${orderId}`, {
+  const response = await request<OrderResponseWire>(`/api/v1/orders/${orderId}`, {
     method: "GET",
   });
+  return normalizeOrderResponse(response);
+}
+
+export async function getSellerOrder(orderId: number): Promise<OrderResponse> {
+  const response = await request<OrderResponseWire>(`/api/seller/v1/orders/${orderId}`, {
+    method: "GET",
+  });
+  return normalizeOrderResponse(response);
 }
 
 export async function getOrderChatMessages(
@@ -259,6 +286,20 @@ export async function getOrderChatMessages(
     qs.set("beforeMessageId", String(params.beforeMessageId));
   }
   return request<ChatMessagesResponse>(`/api/v1/orders/${orderId}/chat/messages?${qs.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function getSellerOrderChatMessages(
+  orderId: number,
+  params?: { size?: number; beforeMessageId?: number },
+): Promise<ChatMessagesResponse> {
+  const qs = new URLSearchParams();
+  qs.set("size", String(params?.size ?? 50));
+  if (params?.beforeMessageId != null) {
+    qs.set("beforeMessageId", String(params.beforeMessageId));
+  }
+  return request<ChatMessagesResponse>(`/api/seller/v1/orders/${orderId}/chat/messages?${qs.toString()}`, {
     method: "GET",
   });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -22,18 +23,17 @@ type StompFrame = {
   body: string;
 };
 
-function formatPrice(value: string | null | undefined, currency: string): string {
-  if (!value) return "Price unavailable";
-  const amount = Number(value);
-  if (!Number.isFinite(amount)) return `${value} ${currency}`;
+function formatPrice(amount: number | null | undefined, currency: string, precision = 2): string {
+  if (amount == null || !Number.isFinite(amount)) return "Price unavailable";
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
     }).format(amount);
   } catch {
-    return `${amount.toFixed(2)} ${currency}`;
+    return `${amount.toFixed(precision)} ${currency}`;
   }
 }
 
@@ -95,6 +95,12 @@ function mergeMessages(prev: ChatMessage[], incoming: ChatMessage[]): ChatMessag
     if (ta === tb) return a.id - b.id;
     return ta - tb;
   });
+}
+
+function getOrderTitle(order: OrderResponse): string {
+  const title = order.displaySettings.productName?.trim();
+  if (title) return title;
+  return `#${order.orderId}`;
 }
 
 export default function OrderPage({ params }: PageProps) {
@@ -405,7 +411,7 @@ export default function OrderPage({ params }: PageProps) {
           serializeStompFrame(
             "SEND",
             {
-              destination: `/app/ws/order-chat/${resolvedOrderId}/send`,
+              destination: `/app/ws/order-chat/${resolvedOrderId}/buyer/send`,
               "content-type": "application/json",
             },
             JSON.stringify({ body }),
@@ -449,7 +455,11 @@ export default function OrderPage({ params }: PageProps) {
           </Link>
           <span>/</span>
           <span className="text-zinc-200">Order</span>
-          {resolvedOrderId ? <span className="text-zinc-400">#{resolvedOrderId}</span> : null}
+          {order ? (
+            <span className="text-zinc-400">{getOrderTitle(order)}</span>
+          ) : resolvedOrderId ? (
+            <span className="text-zinc-400">#{resolvedOrderId}</span>
+          ) : null}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr,1.2fr]">
@@ -467,12 +477,28 @@ export default function OrderPage({ params }: PageProps) {
               </div>
             ) : order ? (
               <div className="mt-4 space-y-3 text-sm text-zinc-200">
+                {order.displaySettings.coverImage ? (
+                  <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-white/10 bg-black/30">
+                    <Image
+                      src={order.displaySettings.coverImage}
+                      alt={getOrderTitle(order)}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                   <span className="text-zinc-400">Order ID</span>
                   <span>#{order.orderId}</span>
                 </div>
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-                  <span className="text-zinc-400">Product</span>
+                  <span className="text-zinc-400">Title</span>
+                  <span>{getOrderTitle(order)}</span>
+                </div>
+                <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                  <span className="text-zinc-400">Product ID</span>
                   <span>#{order.productId}</span>
                 </div>
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
@@ -489,7 +515,7 @@ export default function OrderPage({ params }: PageProps) {
                 </div>
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                   <span className="text-zinc-400">Amount</span>
-                  <span>{formatPrice(order.amount ?? null, order.currency)}</span>
+                  <span>{formatPrice(order.amount, order.currency, order.precision)}</span>
                 </div>
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                   <span className="text-zinc-400">Currency</span>
@@ -521,7 +547,9 @@ export default function OrderPage({ params }: PageProps) {
           <section className="card overflow-hidden p-5">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-pink-300/35 to-transparent" />
             <div className="flex items-center justify-between gap-4">
-              <div className="text-sm uppercase tracking-[0.18em] text-zinc-300/80">Chat</div>
+              <div className="text-sm uppercase tracking-[0.18em] text-zinc-300/80">
+                {order ? `Chat · ${getOrderTitle(order)}` : "Chat"}
+              </div>
               {order?.status === "PAID" ? (
                 <div className={wsConnected ? "text-xs text-emerald-300" : "text-xs text-zinc-400"}>
                   {wsConnected ? "Realtime connected" : "Realtime disconnected"}

@@ -159,15 +159,22 @@ export type CreateOrderRequest = {
   currency: string;
 };
 
+export type OrderDisplaySettings = {
+  productName: string | null;
+  coverImage: string | null;
+};
+
 export type OrderResponse = {
   orderId: number;
   productId: number;
+  sellerId: number;
+  buyerId: number;
+  amount: number;
+  precision: number;
   currency: string;
   status: OrderStatus;
-  amount?: string | null;
-  chatId?: number | null;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  displaySettings: OrderDisplaySettings;
 };
 
 export type ChatParticipant = "BUYER" | "SELLER" | string;
@@ -181,7 +188,6 @@ export type ChatMessage = {
 
 export type ChatMessagesResponse = {
   chatId: number;
-  participant: ChatParticipant;
   size: number;
   nextCursorMessageId: number | null;
   messages: ChatMessage[];
