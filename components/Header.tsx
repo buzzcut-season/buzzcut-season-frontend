@@ -212,9 +212,14 @@ export function Header({
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Profile
                   </button>
-                  <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
+                  <Link
+                    href="/orders"
+                    className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     Orders
-                  </button>
+                  </Link>
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Favorites
                   </button>

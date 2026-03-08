@@ -287,8 +287,21 @@ export async function getSellerOrder(orderId: number): Promise<OrderResponse> {
   return normalizeOrderResponse(response);
 }
 
-export async function getSellerOrders(): Promise<OrderListResponse> {
-  const response = await request<OrderListResponseWire>("/api/seller/v1/orders", {
+export async function getBuyerOrders(params?: { page?: number; size?: number }): Promise<OrderListResponse> {
+  const page = params?.page ?? 0;
+  const size = params?.size ?? 20;
+  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
+  const response = await request<OrderListResponseWire>(`/api/v1/orders?${qs}`, {
+    method: "GET",
+  });
+  return normalizeOrderListResponse(response);
+}
+
+export async function getSellerOrders(params?: { page?: number; size?: number }): Promise<OrderListResponse> {
+  const page = params?.page ?? 0;
+  const size = params?.size ?? 20;
+  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
+  const response = await request<OrderListResponseWire>(`/api/seller/v1/orders?${qs}`, {
     method: "GET",
   });
   return normalizeOrderListResponse(response);

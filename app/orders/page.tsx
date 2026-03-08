@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
-import { asErrorMessage, getSellerOrders } from "@/lib/api";
+import { asErrorMessage, getBuyerOrders } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
 import type { OrderResponse } from "@/lib/types";
 
@@ -33,7 +33,7 @@ function getOrderTitle(order: OrderResponse): string {
   return `#${order.orderId}`;
 }
 
-export default function SellerOrdersPage() {
+export default function BuyerOrdersPage() {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
@@ -58,7 +58,7 @@ export default function SellerOrdersPage() {
     }
 
     try {
-      const response = await getSellerOrders({ page: nextPage, size: PAGE_SIZE });
+      const response = await getBuyerOrders({ page: nextPage, size: PAGE_SIZE });
       const chunk = response.orders ?? [];
       setOrders((prev) => (mode === "reset" ? chunk : [...prev, ...chunk]));
       setPage(nextPage);
@@ -114,14 +114,13 @@ export default function SellerOrdersPage() {
 
       <section className="mx-auto max-w-4xl px-4 mt-8 space-y-4">
         <div className="text-xs text-zinc-400">
-          <Link href="/" className="hover:text-zinc-200 transition">Marketplace</Link> /{" "}
-          <Link href="/seller" className="hover:text-zinc-200 transition">Seller</Link> / Orders
+          <Link href="/" className="hover:text-zinc-200 transition">Marketplace</Link> / Orders
         </div>
 
         {!isAuthed ? (
           <div className="card p-6 space-y-3">
-            <div className="text-lg font-semibold">Seller Orders</div>
-            <div className="text-sm text-zinc-300">Sign in with a SELLER account to view your orders.</div>
+            <div className="text-lg font-semibold">My Orders</div>
+            <div className="text-sm text-zinc-300">Sign in to view buyer orders.</div>
             <button className="btn btn-primary" onClick={() => setAuthOpen(true)}>
               Sign in
             </button>
@@ -129,7 +128,7 @@ export default function SellerOrdersPage() {
         ) : (
           <div className="card p-6 space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <div className="text-lg font-semibold">Seller Orders</div>
+              <div className="text-lg font-semibold">My Orders</div>
               <button
                 className="btn"
                 type="button"
@@ -155,7 +154,7 @@ export default function SellerOrdersPage() {
                       key={order.orderId}
                       type="button"
                       className="rounded-xl border border-white/10 bg-black/20 p-3 text-left hover:border-white/25 transition"
-                      onClick={() => router.push(`/seller/orders/${order.orderId}`)}
+                      onClick={() => router.push(`/orders/${order.orderId}`)}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
