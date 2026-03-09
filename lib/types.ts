@@ -153,7 +153,7 @@ export type PublishDraftResponse = {
   productId: number;
 };
 
-export type OrderStatus = "CREATED" | "PAID" | string;
+export type OrderStatus = "CREATED" | "PAID" | "COMPLETED" | string;
 
 export type CreateOrderRequest = {
   productId: number;

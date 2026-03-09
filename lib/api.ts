@@ -299,6 +299,13 @@ export async function getSellerOrder(orderId: number): Promise<OrderResponse> {
   return normalizeOrderResponse(response);
 }
 
+export async function completeSellerOrder(orderId: number): Promise<OrderResponse> {
+  const response = await request<OrderResponseWire>(`/api/seller/v1/orders/${orderId}/complete`, {
+    method: "POST",
+  });
+  return normalizeOrderResponse(response);
+}
+
 export async function getBuyerOrders(params?: { page?: number; size?: number }): Promise<OrderListResponse> {
   const page = params?.page ?? 0;
   const size = params?.size ?? 20;

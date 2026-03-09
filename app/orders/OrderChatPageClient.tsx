@@ -9,6 +9,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import {
   asErrorMessage,
+  completeSellerOrder,
   getOrder,
   getOrderChatMessages,
   getSellerOrder,
@@ -123,6 +124,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   const [loadingOrder, setLoadingOrder] = useState(true);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
@@ -263,7 +265,8 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   }, [loadOrder, params]);
 
   useEffect(() => {
-    if (!resolvedOrderId || order?.status !== "PAID") {
+    const isChatAvailable = order?.status === "PAID" || order?.status === "COMPLETED";
+    if (!resolvedOrderId || !isChatAvailable) {
       setMessages([]);
       setChatCursor(null);
       setChatHasMore(false);
@@ -275,7 +278,8 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   }, [loadInitialChat, order?.status, resolvedOrderId]);
 
   useEffect(() => {
-    if (!resolvedOrderId || order?.status !== "PAID") {
+    const isRealtimeAvailable = order?.status === "PAID";
+    if (!resolvedOrderId || !isRealtimeAvailable) {
       setWsConnected(false);
       setWsError(null);
       if (wsRef.current) {
@@ -410,11 +414,34 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
     }
   }, [loadOrder, paying, resolvedOrderId, role]);
 
+  const onComplete = useCallback(async () => {
+    if (role !== "seller" || !resolvedOrderId || completing) return;
+    try {
+      setCompleting(true);
+      setOrderError(null);
+      const data = await completeSellerOrder(resolvedOrderId);
+      setOrder(data);
+      const orderCurrency = (data.currency ?? "").toUpperCase();
+      if (orderCurrency === "USD" || orderCurrency === "EUR" || orderCurrency === "RUB") {
+        setCurrency(orderCurrency);
+      }
+    } catch (e) {
+      setOrderError(asErrorMessage(e));
+    } finally {
+      setCompleting(false);
+    }
+  }, [completing, resolvedOrderId, role]);
+
   const onSendMessage = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const body = chatInput.trim();
       if (!body || !resolvedOrderId) return;
+
+      if (order?.status !== "PAID") {
+        setWsError("Chat is read-only for this order status");
+        return;
+      }
 
       const ws = wsRef.current;
       if (!ws || ws.readyState !== WebSocket.OPEN || !wsConnected) {
@@ -453,7 +480,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
         setSendingMessage(false);
       }
     },
-    [chatInput, resolvedOrderId, role, wsConnected],
+    [chatInput, order?.status, resolvedOrderId, role, wsConnected],
   );
 
   return (
@@ -534,6 +561,8 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       order.status === "PAID"
                         ? "border border-emerald-400/30 bg-emerald-500/15 text-emerald-200"
+                        : order.status === "COMPLETED"
+                          ? "border border-sky-400/30 bg-sky-500/15 text-sky-200"
                         : "border border-amber-300/25 bg-amber-400/10 text-amber-200"
                     }`}
                   >
@@ -549,7 +578,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                   <span>{order.currency}</span>
                 </div>
 
-                {role === "buyer" && order.status !== "PAID" ? (
+                {role === "buyer" && order.status === "CREATED" ? (
                   <button className="btn btn-primary mt-2 w-full" onClick={onPay} disabled={paying}>
                     {paying ? (
                       <>
@@ -564,8 +593,24 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                   <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-3 text-xs text-emerald-200">
                     Payment completed. Chat is available.
                   </div>
+                ) : order.status === "COMPLETED" ? (
+                  <div className="rounded-xl border border-sky-400/25 bg-sky-500/10 p-3 text-xs text-sky-200">
+                    Order completed.
+                  </div>
                 ) : null}
-                {role === "seller" && order.status !== "PAID" ? (
+                {role === "seller" && order.status === "PAID" ? (
+                  <button className="btn btn-primary mt-2 w-full" onClick={onComplete} disabled={completing}>
+                    {completing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Completing order...
+                      </>
+                    ) : (
+                      "Complete order"
+                    )}
+                  </button>
+                ) : null}
+                {role === "seller" && order.status === "CREATED" ? (
                   <div className="rounded-xl border border-amber-300/25 bg-amber-400/10 p-3 text-xs text-amber-200">
                     Waiting for buyer payment. Chat will be available after payment.
                   </div>
@@ -589,7 +634,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
               ) : null}
             </div>
 
-            {order?.status !== "PAID" ? (
+            {order?.status !== "PAID" && order?.status !== "COMPLETED" ? (
               <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-300">
                 Chat will appear after payment.
               </div>
@@ -671,7 +716,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                   <button
                     className="btn btn-primary"
                     type="submit"
-                    disabled={!wsConnected || sendingMessage || chatInput.trim().length === 0}
+                    disabled={order?.status !== "PAID" || !wsConnected || sendingMessage || chatInput.trim().length === 0}
                   >
                     {sendingMessage ? "Sending..." : "Send"}
                   </button>
