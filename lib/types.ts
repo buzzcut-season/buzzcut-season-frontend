@@ -193,6 +193,8 @@ export type ChatMessage = {
 
 export type ChatMessagesResponse = {
   chatId: number;
+  buyer: string;
+  seller: string;
   size: number;
   nextCursorMessageId: number | null;
   messages: ChatMessage[];

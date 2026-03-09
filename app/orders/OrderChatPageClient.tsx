@@ -278,7 +278,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   }, [loadInitialChat, order?.status, resolvedOrderId]);
 
   useEffect(() => {
-    const isRealtimeAvailable = order?.status === "PAID";
+    const isRealtimeAvailable = order?.status === "PAID" || order?.status === "COMPLETED";
     if (!resolvedOrderId || !isRealtimeAvailable) {
       setWsConnected(false);
       setWsError(null);
@@ -438,7 +438,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
       const body = chatInput.trim();
       if (!body || !resolvedOrderId) return;
 
-      if (order?.status !== "PAID") {
+      if (order?.status !== "PAID" && order?.status !== "COMPLETED") {
         setWsError("Chat is read-only for this order status");
         return;
       }
@@ -627,7 +627,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
               <div className="text-sm uppercase tracking-[0.18em] text-zinc-300/80">
                 {order ? `Chat · ${getOrderTitle(order)}` : "Chat"}
               </div>
-              {order?.status === "PAID" ? (
+              {order?.status === "PAID" || order?.status === "COMPLETED" ? (
                 <div className={wsConnected ? "text-xs text-emerald-300" : "text-xs text-zinc-400"}>
                   {wsConnected ? "Realtime connected" : "Realtime disconnected"}
                 </div>
@@ -708,7 +708,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                   <input
                     className="input"
                     placeholder={
-                      order?.status === "PAID"
+                      order?.status === "PAID" || order?.status === "COMPLETED"
                         ? wsConnected
                           ? "Type a message..."
                           : "Type a message (sending is available when realtime reconnects)"
@@ -717,12 +717,17 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     maxLength={4000}
-                    disabled={sendingMessage || order?.status !== "PAID"}
+                    disabled={sendingMessage || (order?.status !== "PAID" && order?.status !== "COMPLETED")}
                   />
                   <button
                     className="btn btn-primary"
                     type="submit"
-                    disabled={order?.status !== "PAID" || !wsConnected || sendingMessage || chatInput.trim().length === 0}
+                    disabled={
+                      (order?.status !== "PAID" && order?.status !== "COMPLETED")
+                      || !wsConnected
+                      || sendingMessage
+                      || chatInput.trim().length === 0
+                    }
                   >
                     {sendingMessage ? "Sending..." : "Send"}
                   </button>
