@@ -684,11 +684,11 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                         const isSystem = message.participant === "SYSTEM";
                         const mine = role === "buyer" ? message.participant === "BUYER" : message.participant === "SELLER";
                         return (
-                          <div key={message.id} className={`flex ${isSystem ? "justify-center" : mine ? "justify-end" : "justify-start"}`}>
+                          <div key={message.id} className={`flex ${isSystem ? "justify-start" : mine ? "justify-end" : "justify-start"}`}>
                             <div
                               className={`w-fit rounded-2xl border px-3 py-2 text-sm ${
                                 isSystem
-                                  ? "max-w-[92%] border-amber-300/35 bg-amber-400/10 text-amber-100 md:max-w-[86%]"
+                                  ? "max-w-[78%] border-amber-300/35 bg-amber-400/10 text-amber-100 md:max-w-[72%]"
                                   : "max-w-[78%] md:max-w-[72%]"
                               } ${
                                 isSystem
