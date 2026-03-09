@@ -707,11 +707,17 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                 <form className="mt-3 flex gap-2" onSubmit={onSendMessage}>
                   <input
                     className="input"
-                    placeholder={wsConnected ? "Type a message..." : "Type a message (sending is available when realtime reconnects)"}
+                    placeholder={
+                      order?.status === "PAID"
+                        ? wsConnected
+                          ? "Type a message..."
+                          : "Type a message (sending is available when realtime reconnects)"
+                        : "Order completed. Chat is read-only."
+                    }
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     maxLength={4000}
-                    disabled={sendingMessage}
+                    disabled={sendingMessage || order?.status !== "PAID"}
                   />
                   <button
                     className="btn btn-primary"
