@@ -181,7 +181,7 @@ function HomePageContent() {
                   categories={categories}
                   selectedSlug={selectedCategorySlug}
                   onSelectCategory={(node) => {
-                    updateCategoryInUrl(node.slug);
+                    updateCategoryInUrl(selectedCategorySlug === node.slug ? null : node.slug);
                   }}
                 />
               )}

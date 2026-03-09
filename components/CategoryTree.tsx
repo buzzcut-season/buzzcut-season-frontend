@@ -28,7 +28,9 @@ function CategoryTreeNode({
         onClick={() => onSelectCategory(node)}
         className={
           isRoot
-            ? `text-sm font-semibold tracking-tight transition ${isActive ? "text-pink-300" : "text-zinc-100"}`
+            ? `inline-flex text-base font-semibold tracking-tight transition sm:text-lg ${
+                isActive ? "text-pink-300" : "text-zinc-100 hover:text-pink-200"
+              }`
             : `flex items-start gap-2 text-xs transition duration-200 ${
                 isActive ? "text-pink-200" : "text-zinc-200/90 hover:text-zinc-100"
               }`
@@ -57,7 +59,7 @@ function CategoryTreeNode({
 
 export function CategoryTree({ categories, selectedSlug, onSelectCategory }: CategoryTreeProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,max-content))] justify-start gap-x-8 gap-y-5">
       {categories.map((node) => (
         <CategoryTreeNode
           key={node.id}
