@@ -681,18 +681,27 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                       <div className="py-10 text-center text-sm text-zinc-400">No messages yet</div>
                     ) : (
                       messages.map((message) => {
+                        const isSystem = message.participant === "SYSTEM";
                         const mine = role === "buyer" ? message.participant === "BUYER" : message.participant === "SELLER";
                         return (
-                          <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                          <div key={message.id} className={`flex ${isSystem ? "justify-center" : mine ? "justify-end" : "justify-start"}`}>
                             <div
-                              className={`w-fit max-w-[78%] rounded-2xl border px-3 py-2 text-sm md:max-w-[72%] ${
-                                mine
+                              className={`w-fit rounded-2xl border px-3 py-2 text-sm ${
+                                isSystem
+                                  ? "max-w-[92%] border-amber-300/35 bg-amber-400/10 text-amber-100 md:max-w-[86%]"
+                                  : "max-w-[78%] md:max-w-[72%]"
+                              } ${
+                                isSystem
+                                  ? ""
+                                  : mine
                                   ? "border-pink-400/25 bg-gradient-to-br from-pink-500/18 to-violet-500/12 text-zinc-100"
                                   : "border-white/10 bg-white/5 text-zinc-200"
                               }`}
                             >
-                              <div className="mb-1 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
-                                <span>{message.name || message.participant}</span>
+                              <div className="mb-1 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-zinc-400/90">
+                                <span className={isSystem ? "text-amber-200" : undefined}>
+                                  {message.name || message.participant}
+                                </span>
                                 <span>{new Date(message.createdAt).toLocaleString()}</span>
                               </div>
                               <div className="whitespace-pre-wrap break-words">{message.body}</div>
