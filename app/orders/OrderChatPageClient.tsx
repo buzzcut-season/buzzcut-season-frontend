@@ -692,7 +692,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                               }`}
                             >
                               <div className="mb-1 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
-                                <span>{message.participant}</span>
+                                <span>{message.name || message.participant}</span>
                                 <span>{new Date(message.createdAt).toLocaleString()}</span>
                               </div>
                               <div className="whitespace-pre-wrap break-words">{message.body}</div>

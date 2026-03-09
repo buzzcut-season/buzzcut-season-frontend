@@ -187,14 +187,13 @@ export type ChatParticipant = "BUYER" | "SELLER" | string;
 export type ChatMessage = {
   id: number;
   participant: ChatParticipant;
+  name: string;
   body: string;
   createdAt: string;
 };
 
 export type ChatMessagesResponse = {
   chatId: number;
-  buyer: string;
-  seller: string;
   size: number;
   nextCursorMessageId: number | null;
   messages: ChatMessage[];
