@@ -61,7 +61,9 @@ function asErrorMessage(err: unknown): string {
 
 const REFRESH_PATH = "/api/v1/accounts/refresh";
 
-type OrderResponseWire = Omit<OrderResponse, "displaySettings"> & {
+type OrderResponseWire = Omit<OrderResponse, "orderId" | "displaySettings"> & {
+  id?: number | null;
+  orderId?: number | null;
   displaySettings?: {
     productName?: string | null;
     coverImage?: string | null;
@@ -139,8 +141,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
+  const orderId = order.orderId ?? order.id;
+  if (orderId == null) {
+    throw new Error("Order response does not include orderId");
+  }
+
   return {
     ...order,
+    orderId,
     displaySettings: {
       productName: order.displaySettings?.productName ?? null,
       coverImage: order.displaySettings?.coverImage ?? null,
@@ -332,6 +340,13 @@ export async function getSellerOrder(orderId: number): Promise<OrderResponse> {
 
 export async function completeSellerOrder(orderId: number): Promise<OrderResponse> {
   const response = await request<OrderResponseWire>(`/api/seller/v1/orders/${orderId}/complete`, {
+    method: "POST",
+  });
+  return normalizeOrderResponse(response);
+}
+
+export async function refundSellerOrder(orderId: number): Promise<OrderResponse> {
+  const response = await request<OrderResponseWire>(`/api/seller/orders/${orderId}/refund`, {
     method: "POST",
   });
   return normalizeOrderResponse(response);

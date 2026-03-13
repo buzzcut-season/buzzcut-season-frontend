@@ -17,6 +17,7 @@ import {
   getSellerOrder,
   getSellerOrderChatMessages,
   payOrder,
+  refundSellerOrder,
 } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
 import type { ChatMessage, OrderResponse, Review } from "@/lib/types";
@@ -127,6 +128,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   const [orderError, setOrderError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [refunding, setRefunding] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -446,6 +448,24 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
     }
   }, [completing, resolvedOrderId, role]);
 
+  const onRefund = useCallback(async () => {
+    if (role !== "seller" || !resolvedOrderId || refunding) return;
+    try {
+      setRefunding(true);
+      setOrderError(null);
+      const data = await refundSellerOrder(resolvedOrderId);
+      setOrder(data);
+      const orderCurrency = (data.currency ?? "").toUpperCase();
+      if (orderCurrency === "USD" || orderCurrency === "EUR" || orderCurrency === "RUB") {
+        setCurrency(orderCurrency);
+      }
+    } catch {
+      setOrderError("Не удалось выполнить действие");
+    } finally {
+      setRefunding(false);
+    }
+  }, [refunding, resolvedOrderId, role]);
+
   const onSendMessage = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -611,6 +631,8 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                         ? "border border-emerald-400/30 bg-emerald-500/15 text-emerald-200"
                         : order.status === "COMPLETED"
                           ? "border border-sky-400/30 bg-sky-500/15 text-sky-200"
+                        : order.status === "REFUNDED"
+                          ? "border border-rose-400/30 bg-rose-500/15 text-rose-200"
                         : "border border-amber-300/25 bg-amber-400/10 text-amber-200"
                     }`}
                   >
@@ -645,6 +667,10 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                   <div className="rounded-xl border border-sky-400/25 bg-sky-500/10 p-3 text-xs text-sky-200">
                     Order completed.
                   </div>
+                ) : order.status === "REFUNDED" ? (
+                  <div className="rounded-xl border border-rose-400/25 bg-rose-500/10 p-3 text-xs text-rose-200">
+                    Order refunded. Related reviews and system chat updates may appear with a delay.
+                  </div>
                 ) : null}
                 {role === "seller" && order.status === "PAID" ? (
                   <button className="btn btn-primary mt-2 w-full" onClick={onComplete} disabled={completing}>
@@ -655,6 +681,18 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                       </>
                     ) : (
                       "Complete order"
+                    )}
+                  </button>
+                ) : null}
+                {role === "seller" && (order.status === "PAID" || order.status === "COMPLETED") ? (
+                  <button className="btn mt-2 w-full" onClick={onRefund} disabled={refunding}>
+                    {refunding ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Refunding order...
+                      </>
+                    ) : (
+                      "Refund order"
                     )}
                   </button>
                 ) : null}
