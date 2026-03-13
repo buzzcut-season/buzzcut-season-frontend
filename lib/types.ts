@@ -81,6 +81,11 @@ export type ProductCardImage = {
   image: string;
 };
 
+export type ProductReviewsSummary = {
+  averageRating: string | null;
+  totalCount: number;
+};
+
 export type ProductCard = {
   id: number;
   name: string;
@@ -88,6 +93,7 @@ export type ProductCard = {
   seller: string;
   prices: ProductCardPrice[];
   images: ProductCardImage[];
+  reviews: ProductReviewsSummary;
 };
 
 export type CategoryNode = {
@@ -197,4 +203,24 @@ export type ChatMessagesResponse = {
   size: number;
   nextCursorMessageId: number | null;
   messages: ChatMessage[];
+};
+
+export type Review = {
+  id: number;
+  buyer: string;
+  rating: number;
+  text: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
+export type ProductReviewsResponse = {
+  averageRating: string | null;
+  totalCount: number;
+  items: Review[];
+};
+
+export type CreateReviewRequest = {
+  rating: number;
+  text?: string;
 };

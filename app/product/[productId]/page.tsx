@@ -4,9 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, MessageCircle, Star, Store, Users } from "lucide-react";
+import { Loader2, ShieldCheck, Star, Store } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
+import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { ApiHttpError, asErrorMessage, createOrder, getProductCard } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
 import type { ProductCard as ProductCardType } from "@/lib/types";
@@ -242,9 +243,21 @@ export default function ProductPage({ params }: PageProps) {
                     <p className="mt-3 text-sm leading-relaxed text-zinc-200/90 whitespace-pre-wrap">
                       {product.description}
                     </p>
-                    <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
-                      <Store className="h-3.5 w-3.5 text-pink-300" />
-                      <span>{product.seller}</span>
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-300">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                        <Store className="h-3.5 w-3.5 text-pink-300" />
+                        <span>{product.seller}</span>
+                      </div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                        <Star className="h-3.5 w-3.5 text-amber-300" />
+                        <span>
+                          {product.reviews.averageRating == null
+                            ? "Пока нет отзывов"
+                            : `${product.reviews.averageRating} · ${product.reviews.totalCount} review${
+                                product.reviews.totalCount === 1 ? "" : "s"
+                              }`}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -287,31 +300,33 @@ export default function ProductPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <section className="card p-5">
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 text-pink-300" />
                   <h2 className="text-sm font-semibold">Rating</h2>
                 </div>
+                {product.reviews.averageRating == null ? (
+                  <p className="mt-2 text-sm text-[var(--muted)]">Пока нет отзывов</p>
+                ) : (
+                  <p className="mt-2 text-sm text-[var(--muted)]">
+                    {product.reviews.averageRating} average rating based on {product.reviews.totalCount} review
+                    {product.reviews.totalCount === 1 ? "" : "s"}.
+                  </p>
+                )}
+              </section>
+              <section className="card p-5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-pink-300" />
+                  <h2 className="text-sm font-semibold">Purchase protection</h2>
+                </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  No rating data yet. It will appear after first purchases.
+                  After payment you can chat in the order page, complete the order, and leave a review.
                 </p>
               </section>
-              <section className="card p-5">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-pink-300" />
-                  <h2 className="text-sm font-semibold">Reviews</h2>
-                </div>
-                <p className="mt-2 text-sm text-[var(--muted)]">Reviews will be available later.</p>
-              </section>
-              <section className="card p-5">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-pink-300" />
-                  <h2 className="text-sm font-semibold">Comments</h2>
-                </div>
-                <p className="mt-2 text-sm text-[var(--muted)]">Comments are not implemented yet.</p>
-              </section>
             </div>
+
+            <ProductReviewsSection productId={product.id} summary={product.reviews} />
           </div>
         ) : (
           <div className="card p-6">

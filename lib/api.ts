@@ -5,6 +5,7 @@ import type {
   ChatMessagesResponse,
   CategoryTreeResponse,
   ConfirmDraftImageRequest,
+  CreateReviewRequest,
   CreateOrderRequest,
   CreateDraftResponse,
   HealthResponse,
@@ -13,10 +14,12 @@ import type {
   PresignDraftImageRequest,
   PresignDraftImageResponse,
   ProductCard,
+  ProductReviewsResponse,
   PublishDraftResponse,
   ProductFeedResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
+  Review,
   SellerDraft,
   SendCodeRequest,
   SendCodeResponse,
@@ -62,6 +65,13 @@ type OrderResponseWire = Omit<OrderResponse, "displaySettings"> & {
   displaySettings?: {
     productName?: string | null;
     coverImage?: string | null;
+  } | null;
+};
+
+type ProductCardWire = Omit<ProductCard, "reviews"> & {
+  reviews?: {
+    averageRating?: string | null;
+    totalCount?: number | null;
   } | null;
 };
 
@@ -144,6 +154,16 @@ function normalizeOrderListResponse(response: OrderListResponseWire): OrderListR
   };
 }
 
+function normalizeProductCardResponse(product: ProductCardWire): ProductCard {
+  return {
+    ...product,
+    reviews: {
+      averageRating: product.reviews?.averageRating ?? null,
+      totalCount: product.reviews?.totalCount ?? 0,
+    },
+  };
+}
+
 export async function getHealth(): Promise<HealthResponse> {
   return request<HealthResponse>("/actuator/health", { method: "GET" });
 }
@@ -186,7 +206,18 @@ export async function getProductFeedByCategorySlug(
 }
 
 export async function getProductCard(productId: number): Promise<ProductCard> {
-  return request<ProductCard>(`/api/v1/product-card/${productId}`, { method: "GET" });
+  const response = await request<ProductCardWire>(`/api/v1/product-card/${productId}`, { method: "GET" });
+  return normalizeProductCardResponse(response);
+}
+
+export async function getProductReviews(
+  productId: number,
+  params?: { page?: number; size?: number },
+): Promise<ProductReviewsResponse> {
+  const page = params?.page ?? 0;
+  const size = Math.min(params?.size ?? 20, 100);
+  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
+  return request<ProductReviewsResponse>(`/api/v1/reviews/products/${productId}?${qs}`, { method: "GET" });
 }
 
 export async function getCategoryTree(): Promise<CategoryTreeResponse> {
@@ -304,6 +335,13 @@ export async function completeSellerOrder(orderId: number): Promise<OrderRespons
     method: "POST",
   });
   return normalizeOrderResponse(response);
+}
+
+export async function createOrderReview(orderId: number, body: CreateReviewRequest): Promise<Review> {
+  return request<Review>(`/api/v1/reviews/orders/${orderId}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function getBuyerOrders(params?: { page?: number; size?: number }): Promise<OrderListResponse> {
