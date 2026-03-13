@@ -346,7 +346,7 @@ export async function completeSellerOrder(orderId: number): Promise<OrderRespons
 }
 
 export async function refundSellerOrder(orderId: number): Promise<OrderResponse> {
-  const response = await request<OrderResponseWire>(`/api/seller/orders/${orderId}/refund`, {
+  const response = await request<OrderResponseWire>(`/api/seller/v1/orders/${orderId}/refund`, {
     method: "POST",
   });
   return normalizeOrderResponse(response);
