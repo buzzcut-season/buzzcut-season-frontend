@@ -237,7 +237,7 @@ export async function getProductReviews(
   const page = params?.page ?? 0;
   const size = Math.min(params?.size ?? 20, 100);
   const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
-  return request<ProductReviewsResponse>(`/api/v1/reviews/products/${productId}?${qs}`, { method: "GET" });
+  return request<ProductReviewsResponse>(`/api/v1/product-card/${productId}/reviews?${qs}`, { method: "GET" });
 }
 
 export async function getCategoryTree(): Promise<CategoryTreeResponse> {
