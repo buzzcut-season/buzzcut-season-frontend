@@ -206,27 +206,18 @@ export async function getAccountMe(): Promise<AccountMe> {
   return request<AccountMe>("/api/v1/accounts/me", { method: "GET" });
 }
 
-export async function getProductFeed(params?: { page?: number; size?: number }): Promise<ProductFeedResponse> {
+export async function getProductFeed(params?: { page?: number; size?: number; category?: string | null }): Promise<ProductFeedResponse> {
   const page = params?.page ?? 0;
   const size = params?.size ?? 24;
-  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
-  return request<ProductFeedResponse>(`/api/v1/product-feed?${qs}`, { method: "GET" });
-}
-
-export async function getProductFeedByCategorySlug(
-  slug: string,
-  params?: { page?: number; size?: number },
-): Promise<ProductFeedResponse> {
-  const page = params?.page ?? 0;
-  const size = params?.size ?? 20;
-  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
-  return request<ProductFeedResponse>(`/api/v1/product-feed/category/${encodeURIComponent(slug)}?${qs}`, {
-    method: "GET",
-  });
+  const qs = new URLSearchParams({ page: String(page), size: String(size) });
+  if (typeof params?.category === "string" && params.category.trim()) {
+    qs.set("category", params.category.trim());
+  }
+  return request<ProductFeedResponse>(`/api/v1/products?${qs.toString()}`, { method: "GET" });
 }
 
 export async function getProductCard(productId: number): Promise<ProductCard> {
-  const response = await request<ProductCardWire>(`/api/v1/product-card/${productId}`, { method: "GET" });
+  const response = await request<ProductCardWire>(`/api/v1/products/${productId}`, { method: "GET" });
   return normalizeProductCardResponse(response);
 }
 
@@ -237,7 +228,7 @@ export async function getProductReviews(
   const page = params?.page ?? 0;
   const size = Math.min(params?.size ?? 20, 100);
   const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
-  return request<ProductReviewsResponse>(`/api/v1/product-card/${productId}/reviews?${qs}`, { method: "GET" });
+  return request<ProductReviewsResponse>(`/api/v1/products/${productId}/reviews?${qs}`, { method: "GET" });
 }
 
 export async function getCategoryTree(): Promise<CategoryTreeResponse> {
@@ -322,7 +313,7 @@ export async function cancelDraft(draftId: number): Promise<CreateDraftResponse>
 }
 
 export async function createOrder(body: CreateOrderRequest): Promise<OrderResponse> {
-  const response = await request<OrderResponseWire>("/api/v1/orders/create", {
+  const response = await request<OrderResponseWire>("/api/v1/orders", {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -365,7 +356,7 @@ export async function refundSellerOrder(orderId: number): Promise<OrderResponse>
 }
 
 export async function createOrderReview(orderId: number, body: CreateReviewRequest): Promise<Review> {
-  return request<Review>(`/api/v1/reviews/orders/${orderId}`, {
+  return request<Review>(`/api/v1/orders/${orderId}/review`, {
     method: "POST",
     body: JSON.stringify(body),
   });

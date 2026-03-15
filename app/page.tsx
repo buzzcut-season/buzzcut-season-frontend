@@ -7,7 +7,7 @@ import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryTree } from "@/components/CategoryTree";
-import { asErrorMessage, getCategoryTree, getProductFeed, getProductFeedByCategorySlug } from "@/lib/api";
+import { asErrorMessage, getCategoryTree, getProductFeed } from "@/lib/api";
 import type { CategoryNode, ProductFeedItem } from "@/lib/types";
 import { readAuth } from "@/lib/storage";
 
@@ -81,9 +81,11 @@ function HomePageContent() {
         setLoadingMore(true);
       }
 
-      const res = selectedCategorySlug
-        ? await getProductFeedByCategorySlug(selectedCategorySlug, { page: p, size })
-        : await getProductFeed({ page: p, size });
+      const res = await getProductFeed({
+        page: p,
+        size,
+        category: selectedCategorySlug,
+      });
       const newItems = res.items ?? [];
       setItems((prev) => (mode === "replace" ? newItems : [...prev, ...newItems]));
       setPage(p);
