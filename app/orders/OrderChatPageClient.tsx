@@ -20,7 +20,7 @@ import {
   refundSellerOrder,
 } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
-import type { ChatMessage, OrderResponse, Review } from "@/lib/types";
+import type { ChatMessage, OrderPageResponse } from "@/lib/types";
 
 type Role = "buyer" | "seller";
 
@@ -111,10 +111,17 @@ function mergeMessages(prev: ChatMessage[], incoming: ChatMessage[]): ChatMessag
   });
 }
 
-function getOrderTitle(order: OrderResponse): string {
+function getOrderTitle(order: OrderPageResponse): string {
   const title = order.displaySettings.productName?.trim();
   if (title) return title;
   return `#${order.orderId}`;
+}
+
+function formatReviewTimestamp(value: string | null): string | null {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) return null;
+  return new Date(timestamp).toLocaleString();
 }
 
 export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) {
@@ -123,7 +130,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
 
   const [resolvedOrderId, setResolvedOrderId] = useState<number | null>(null);
-  const [order, setOrder] = useState<OrderResponse | null>(null);
+  const [order, setOrder] = useState<OrderPageResponse | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
@@ -133,8 +140,6 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [createdReview, setCreatedReview] = useState<Review | null>(null);
-
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -289,7 +294,6 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
 
   useEffect(() => {
     setReviewError(null);
-    setCreatedReview(null);
     setReviewText("");
     setReviewRating(5);
   }, [resolvedOrderId]);
@@ -438,7 +442,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
       setCompleting(true);
       setOrderError(null);
       const data = await completeSellerOrder(resolvedOrderId);
-      setOrder(data);
+      setOrder((prev) => ({ ...data, review: prev?.review ?? null }));
       const orderCurrency = (data.currency ?? "").toUpperCase();
       if (orderCurrency === "USD" || orderCurrency === "EUR" || orderCurrency === "RUB") {
         setCurrency(orderCurrency);
@@ -456,7 +460,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
       setRefunding(true);
       setOrderError(null);
       const data = await refundSellerOrder(resolvedOrderId);
-      setOrder(data);
+      setOrder((prev) => ({ ...data, review: prev?.review ?? null }));
       const orderCurrency = (data.currency ?? "").toUpperCase();
       if (orderCurrency === "USD" || orderCurrency === "EUR" || orderCurrency === "RUB") {
         setCurrency(orderCurrency);
@@ -541,7 +545,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
           rating: reviewRating,
           ...(normalizedText ? { text: normalizedText } : {}),
         });
-        setCreatedReview(review);
+        setOrder((prev) => (prev ? { ...prev, review } : prev));
         setReviewText("");
       } catch {
         setReviewError("Не удалось выполнить действие");
@@ -708,7 +712,44 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
               <div className="mt-4 text-sm text-zinc-300">Order not found</div>
             )}
             </section>
-            {role === "buyer" && order?.status === "COMPLETED" ? (
+            {order?.review ? (
+              <section className="card overflow-hidden p-5">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/35 to-transparent" />
+                <div className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-zinc-300/80">
+                  <Star className="h-4 w-4 text-amber-300" />
+                  Review
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-medium">{order.review.buyer}</div>
+                      <div className="mt-2">
+                        <RatingStars rating={order.review.rating} />
+                      </div>
+                    </div>
+                    <div className="text-right text-xs text-emerald-100/70">
+                      <div>{formatReviewTimestamp(order.review.createdAt) ?? "Review date unavailable"}</div>
+                      {order.review.updatedAt && order.review.updatedAt !== order.review.createdAt ? (
+                        <div className="mt-1">Updated {formatReviewTimestamp(order.review.updatedAt) ?? order.review.updatedAt}</div>
+                      ) : null}
+                    </div>
+                  </div>
+                  {order.review.text ? (
+                    <p className="mt-3 whitespace-pre-wrap break-words text-sm text-emerald-50/90">
+                      {order.review.text}
+                    </p>
+                  ) : null}
+                  <Link
+                    className="mt-4 inline-flex text-xs text-emerald-200 underline underline-offset-4"
+                    href={`/product/${order.productId}`}
+                  >
+                    Open product reviews
+                  </Link>
+                </div>
+              </section>
+            ) : null}
+            {role === "buyer" && order?.status === "COMPLETED" && !order.review ? (
               <section className="card overflow-hidden p-5">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/35 to-transparent" />
                 <div className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-zinc-300/80">
@@ -716,70 +757,50 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                   Leave a review
                 </div>
 
-                {createdReview ? (
-                  <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-                    <div className="font-medium">Review submitted</div>
+                <form className="mt-4 space-y-4" onSubmit={onSubmitReview}>
+                  <div>
+                    <div className="text-sm font-medium text-zinc-200">Your rating</div>
                     <div className="mt-2">
-                      <RatingStars rating={createdReview.rating} />
+                      <RatingStars rating={reviewRating} size="lg" interactive onChange={setReviewRating} />
                     </div>
-                    {createdReview.text ? (
-                      <p className="mt-3 whitespace-pre-wrap break-words text-sm text-emerald-50/90">
-                        {createdReview.text}
-                      </p>
-                    ) : null}
-                    <Link
-                      className="mt-4 inline-flex text-xs text-emerald-200 underline underline-offset-4"
-                      href={`/product/${order.productId}`}
-                    >
-                      Open product reviews
-                    </Link>
                   </div>
-                ) : (
-                  <form className="mt-4 space-y-4" onSubmit={onSubmitReview}>
-                    <div>
-                      <div className="text-sm font-medium text-zinc-200">Your rating</div>
-                      <div className="mt-2">
-                        <RatingStars rating={reviewRating} size="lg" interactive onChange={setReviewRating} />
-                      </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-zinc-200" htmlFor="review-text">
+                      Comment
+                    </label>
+                    <textarea
+                      id="review-text"
+                      className="input mt-2 min-h-32 resize-y"
+                      value={reviewText}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (nextValue.length <= 4000) {
+                          setReviewText(nextValue);
+                        }
+                      }}
+                      placeholder="Share what was good about the order"
+                    />
+                    <div className="mt-2 text-right text-xs text-zinc-500">{reviewText.length}/4000</div>
+                  </div>
+
+                  {reviewError ? (
+                    <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-3 text-xs text-red-200">
+                      {reviewError}
                     </div>
+                  ) : null}
 
-                    <div>
-                      <label className="text-sm font-medium text-zinc-200" htmlFor="review-text">
-                        Comment
-                      </label>
-                      <textarea
-                        id="review-text"
-                        className="input mt-2 min-h-32 resize-y"
-                        value={reviewText}
-                        onChange={(event) => {
-                          const nextValue = event.target.value;
-                          if (nextValue.length <= 4000) {
-                            setReviewText(nextValue);
-                          }
-                        }}
-                        placeholder="Share what was good about the order"
-                      />
-                      <div className="mt-2 text-right text-xs text-zinc-500">{reviewText.length}/4000</div>
-                    </div>
-
-                    {reviewError ? (
-                      <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-3 text-xs text-red-200">
-                        {reviewError}
-                      </div>
-                    ) : null}
-
-                    <button className="btn btn-primary w-full" type="submit" disabled={reviewSubmitting}>
-                      {reviewSubmitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Sending review...
-                        </>
-                      ) : (
-                        "Submit review"
-                      )}
-                    </button>
-                  </form>
-                )}
+                  <button className="btn btn-primary w-full" type="submit" disabled={reviewSubmitting}>
+                    {reviewSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Sending review...
+                      </>
+                    ) : (
+                      "Submit review"
+                    )}
+                  </button>
+                </form>
               </section>
             ) : null}
           </div>

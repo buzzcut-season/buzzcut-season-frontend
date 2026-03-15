@@ -184,6 +184,10 @@ export type OrderResponse = {
   displaySettings: OrderDisplaySettings;
 };
 
+export type OrderPageResponse = OrderResponse & {
+  review: Review | null;
+};
+
 export type OrderListResponse = {
   orders: OrderResponse[];
 };

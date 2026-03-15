@@ -10,6 +10,7 @@ import type {
   CreateDraftResponse,
   HealthResponse,
   OrderListResponse,
+  OrderPageResponse,
   OrderResponse,
   PresignDraftImageRequest,
   PresignDraftImageResponse,
@@ -68,6 +69,10 @@ type OrderResponseWire = Omit<OrderResponse, "orderId" | "displaySettings"> & {
     productName?: string | null;
     coverImage?: string | null;
   } | null;
+};
+
+type OrderPageResponseWire = OrderResponseWire & {
+  review?: Review | null;
 };
 
 type ProductCardWire = Omit<ProductCard, "reviews"> & {
@@ -153,6 +158,13 @@ function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
       productName: order.displaySettings?.productName ?? null,
       coverImage: order.displaySettings?.coverImage ?? null,
     },
+  };
+}
+
+function normalizeOrderPageResponse(order: OrderPageResponseWire): OrderPageResponse {
+  return {
+    ...normalizeOrderResponse(order),
+    review: order.review ?? null,
   };
 }
 
@@ -324,18 +336,18 @@ export async function payOrder(orderId: number): Promise<OrderResponse> {
   return normalizeOrderResponse(response);
 }
 
-export async function getOrder(orderId: number): Promise<OrderResponse> {
-  const response = await request<OrderResponseWire>(`/api/v1/orders/${orderId}`, {
+export async function getOrder(orderId: number): Promise<OrderPageResponse> {
+  const response = await request<OrderPageResponseWire>(`/api/v1/orders/${orderId}`, {
     method: "GET",
   });
-  return normalizeOrderResponse(response);
+  return normalizeOrderPageResponse(response);
 }
 
-export async function getSellerOrder(orderId: number): Promise<OrderResponse> {
-  const response = await request<OrderResponseWire>(`/api/seller/v1/orders/${orderId}`, {
+export async function getSellerOrder(orderId: number): Promise<OrderPageResponse> {
+  const response = await request<OrderPageResponseWire>(`/api/seller/v1/orders/${orderId}`, {
     method: "GET",
   });
-  return normalizeOrderResponse(response);
+  return normalizeOrderPageResponse(response);
 }
 
 export async function completeSellerOrder(orderId: number): Promise<OrderResponse> {
