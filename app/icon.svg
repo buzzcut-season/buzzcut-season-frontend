@@ -1,0 +1,92 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="64" fill="#07060A"/>
+  <rect x="18" y="18" width="220" height="220" rx="54" fill="url(#bg)"/>
+  <circle cx="72" cy="64" r="58" fill="#EC4899" fill-opacity="0.26"/>
+  <circle cx="196" cy="76" r="68" fill="#8B5CF6" fill-opacity="0.24"/>
+  <circle cx="126" cy="212" r="74" fill="#DB2777" fill-opacity="0.18"/>
+  <rect x="36" y="36" width="184" height="184" rx="48" fill="url(#panel)" stroke="url(#edge)" stroke-width="8"/>
+
+  <path
+    d="M128 54L176 76L192 124L180 176L128 212L76 176L64 124L80 76L128 54Z"
+    fill="#050507"
+  />
+  <path
+    d="M128 70L163 86L176 125L167 164L128 192L89 164L80 125L93 86L128 70Z"
+    fill="#09090D"
+  />
+  <path
+    d="M102 104L128 86L154 104L147 130L128 145L109 130L102 104Z"
+    fill="url(#visor)"
+  />
+  <path
+    d="M96 150L114 137H142L160 150L146 176H110L96 150Z"
+    fill="#030304"
+  />
+  <path
+    d="M116 148H140L133 176H123L116 148Z"
+    fill="url(#shine)"
+  />
+  <path
+    d="M88 92L104 83L111 104L95 114L88 92Z"
+    fill="#13131A"
+  />
+  <path
+    d="M168 92L152 83L145 104L161 114L168 92Z"
+    fill="#13131A"
+  />
+  <path
+    d="M76 176L128 212L180 176"
+    stroke="#14141A"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M128 54L176 76L192 124"
+    stroke="#1A1A22"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.7"
+  />
+  <path
+    d="M128 54L80 76L64 124"
+    stroke="#000000"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.85"
+  />
+  <path
+    d="M98 87L128 72L158 87"
+    stroke="#FBCFE8"
+    stroke-opacity="0.28"
+    stroke-width="5"
+    stroke-linecap="round"
+  />
+
+  <defs>
+    <linearGradient id="bg" x1="33" y1="24" x2="221" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#161225"/>
+      <stop offset="0.55" stop-color="#0F0B18"/>
+      <stop offset="1" stop-color="#0B0A10"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="48" y1="42" x2="206" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#151220"/>
+      <stop offset="0.52" stop-color="#0E0B17"/>
+      <stop offset="1" stop-color="#09090F"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="66" y1="72" x2="188" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EC4899"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="105" y1="94" x2="154" y2="138" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F43F5E"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="118" y1="149" x2="140" y2="175" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDF2F8" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#DDD6FE" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+</svg>
