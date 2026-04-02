@@ -232,9 +232,9 @@ function HomePageContent() {
             </div>
             <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center">
               <label className="relative block flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                 <input
-                  className="input pl-10 pr-10"
+                  className="input pl-12 pr-10"
                   type="search"
                   placeholder="Search products"
                   value={searchInput}
