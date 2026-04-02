@@ -357,7 +357,7 @@ function HomePageContent() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(220px,280px))] justify-center gap-5">
                   {items.map((it) => (
                     <ProductCard key={it.id} item={it} currency={currency} />
                   ))}
