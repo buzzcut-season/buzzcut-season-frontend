@@ -321,7 +321,7 @@ function HomePageContent() {
             </div>
           </div>
 
-          {loading ? (
+          {loading && items.length === 0 ? (
             <div className="card p-10 grid place-items-center">
               <div className="flex items-center gap-2 text-[var(--muted)]">
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -330,6 +330,12 @@ function HomePageContent() {
             </div>
           ) : (
             <>
+              {loading ? (
+                <div className="mt-6 flex items-center justify-center gap-2 text-sm text-zinc-400">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Updating products...
+                </div>
+              ) : null}
               {items.length === 0 ? (
                 <div className="card mt-6 p-10 text-center">
                   <div className="text-base font-semibold text-zinc-100">No products found</div>
@@ -338,7 +344,7 @@ function HomePageContent() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className={`mt-6 grid gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-4 ${loading ? "opacity-70" : "opacity-100"}`}>
                   {items.map((it) => (
                     <ProductCard key={it.id} item={it} currency={currency} />
                   ))}
