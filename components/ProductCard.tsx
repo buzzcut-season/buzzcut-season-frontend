@@ -37,7 +37,7 @@ export function ProductCard({
   const missingPreferred = !preferred && prices.length > 0;
 
   return (
-    <div className="card overflow-hidden group">
+    <div className="card group w-full max-w-[280px] overflow-hidden">
       <div className="relative aspect-[4/3] overflow-hidden bg-[#0b0a10]">
         {item.image ? (
           <>
