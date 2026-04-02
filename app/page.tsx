@@ -252,6 +252,22 @@ function HomePageContent() {
                 </div>
 
                 <div className="flex w-full max-w-xl flex-col gap-2 sm:flex-row">
+                  <button
+                    className={`btn h-10 rounded-xl px-4 transition-opacity sm:min-w-[88px] ${
+                      selectedCategorySlug || normalizedSearchQuery
+                        ? "opacity-100"
+                        : "pointer-events-none opacity-0"
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      setSearchInput("");
+                      updateCatalogParams({ category: null, query: "", page: 0 });
+                    }}
+                    aria-hidden={!selectedCategorySlug && !normalizedSearchQuery}
+                    tabIndex={selectedCategorySlug || normalizedSearchQuery ? 0 : -1}
+                  >
+                    Reset
+                  </button>
                   <label className="relative block flex-1">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                     <input
@@ -277,22 +293,6 @@ function HomePageContent() {
                       </button>
                     ) : null}
                   </label>
-                  <button
-                    className={`btn h-10 rounded-xl px-4 transition-opacity sm:min-w-[88px] ${
-                      selectedCategorySlug || normalizedSearchQuery
-                        ? "opacity-100"
-                        : "pointer-events-none opacity-0"
-                    }`}
-                    type="button"
-                    onClick={() => {
-                      setSearchInput("");
-                      updateCatalogParams({ category: null, query: "", page: 0 });
-                    }}
-                    aria-hidden={!selectedCategorySlug && !normalizedSearchQuery}
-                    tabIndex={selectedCategorySlug || normalizedSearchQuery ? 0 : -1}
-                  >
-                    Reset
-                  </button>
                 </div>
               </div>
 
