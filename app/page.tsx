@@ -277,18 +277,22 @@ function HomePageContent() {
                       </button>
                     ) : null}
                   </label>
-                  {(selectedCategorySlug || normalizedSearchQuery) ? (
-                    <button
-                      className="btn h-10 rounded-xl px-4"
-                      type="button"
-                      onClick={() => {
-                        setSearchInput("");
-                        updateCatalogParams({ category: null, query: "", page: 0 });
-                      }}
-                    >
-                      Reset
-                    </button>
-                  ) : null}
+                  <button
+                    className={`btn h-10 rounded-xl px-4 transition-opacity sm:min-w-[88px] ${
+                      selectedCategorySlug || normalizedSearchQuery
+                        ? "opacity-100"
+                        : "pointer-events-none opacity-0"
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      setSearchInput("");
+                      updateCatalogParams({ category: null, query: "", page: 0 });
+                    }}
+                    aria-hidden={!selectedCategorySlug && !normalizedSearchQuery}
+                    tabIndex={selectedCategorySlug || normalizedSearchQuery ? 0 : -1}
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
 
