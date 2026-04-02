@@ -27,6 +27,8 @@ function parsePage(value: string | null): number {
   return parsed;
 }
 
+const SEARCH_DEBOUNCE_MS = 350;
+
 function HomePageContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -200,6 +202,18 @@ function HomePageContent() {
     });
   }, [pathname, router, searchParams]);
 
+  useEffect(() => {
+    if (searchInput === searchQuery) return;
+
+    const timeoutId = window.setTimeout(() => {
+      updateCatalogParams({ query: searchInput, page: 0 });
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchInput, searchQuery, updateCatalogParams]);
+
   return (
     <main className="min-h-screen pb-16">
       <Header
@@ -239,9 +253,7 @@ function HomePageContent() {
                   placeholder="Search products"
                   value={searchInput}
                   onChange={(e) => {
-                    const nextQuery = e.target.value;
-                    setSearchInput(nextQuery);
-                    updateCatalogParams({ query: nextQuery, page: 0 });
+                    setSearchInput(e.target.value);
                   }}
                 />
                 {searchInput ? (
