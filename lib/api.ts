@@ -206,12 +206,20 @@ export async function getAccountMe(): Promise<AccountMe> {
   return request<AccountMe>("/api/v1/accounts/me", { method: "GET" });
 }
 
-export async function getProductFeed(params?: { page?: number; size?: number; category?: string | null }): Promise<ProductFeedResponse> {
+export async function getProductFeed(params?: {
+  page?: number;
+  size?: number;
+  category?: string | null;
+  query?: string | null;
+}): Promise<ProductFeedResponse> {
   const page = params?.page ?? 0;
-  const size = params?.size ?? 24;
+  const size = Math.min(params?.size ?? 20, 100);
   const qs = new URLSearchParams({ page: String(page), size: String(size) });
   if (typeof params?.category === "string" && params.category.trim()) {
     qs.set("category", params.category.trim());
+  }
+  if (typeof params?.query === "string" && params.query.trim()) {
+    qs.set("query", params.query.trim());
   }
   return request<ProductFeedResponse>(`/api/v1/products?${qs.toString()}`, { method: "GET" });
 }

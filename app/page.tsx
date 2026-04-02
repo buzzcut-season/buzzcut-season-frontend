@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/AuthModal";
 import { ProductCard } from "@/components/ProductCard";
@@ -20,6 +20,13 @@ function findCategoryNameBySlug(nodes: CategoryNode[], slug: string): string | n
   return null;
 }
 
+function parsePage(value: string | null): number {
+  if (!value) return 0;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) return 0;
+  return parsed;
+}
+
 function HomePageContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -28,16 +35,20 @@ function HomePageContent() {
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
+  const [searchInput, setSearchInput] = useState("");
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
   }, []);
 
   const [items, setItems] = useState<ProductFeedItem[]>([]);
-  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null);
   const size = 20;
+  const previousFeedStateRef = useRef<{
+    category: string | null;
+    query: string;
+    page: number;
+  } | null>(null);
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -47,6 +58,9 @@ function HomePageContent() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const selectedCategorySlug = searchParams.get("category");
+  const searchQuery = searchParams.get("query")?.trim() ?? "";
+  const page = parsePage(searchParams.get("page"));
   const canLoadMore = hasMore;
   const selectedCategoryName = useMemo(() => {
     if (!selectedCategorySlug) return null;
@@ -58,13 +72,8 @@ function HomePageContent() {
   }, []);
 
   useEffect(() => {
-    const categoryFromUrl = searchParams.get("category");
-    if (!categoryFromUrl) {
-      setSelectedCategorySlug(null);
-      return;
-    }
-    setSelectedCategorySlug(categoryFromUrl);
-  }, [searchParams]);
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (isAuthed && authOpen) {
@@ -72,35 +81,65 @@ function HomePageContent() {
     }
   }, [isAuthed, authOpen]);
 
-  const load = useCallback(async (p: number, mode: "replace" | "append") => {
-    try {
-      if (mode === "replace") {
-        setLoading(true);
-        setError(null);
-      } else {
-        setLoadingMore(true);
-      }
-
-      const res = await getProductFeed({
-        page: p,
-        size,
-        category: selectedCategorySlug,
-      });
-      const newItems = res.items ?? [];
-      setItems((prev) => (mode === "replace" ? newItems : [...prev, ...newItems]));
-      setPage(p);
-      setHasMore(newItems.length >= size);
-    } catch (e) {
-      setError(asErrorMessage(e));
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [selectedCategorySlug, size]);
-
   useEffect(() => {
-    load(0, "replace");
-  }, [load]);
+    const previousFeedState = previousFeedStateRef.current;
+    const canAppend =
+      previousFeedState != null &&
+      previousFeedState.category === selectedCategorySlug &&
+      previousFeedState.query === searchQuery &&
+      page === previousFeedState.page + 1;
+
+    const loadFeed = async () => {
+      try {
+        setError(null);
+        if (canAppend) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        if (canAppend) {
+          const res = await getProductFeed({
+            page,
+            size,
+            category: selectedCategorySlug,
+            query: searchQuery,
+          });
+          const newItems = res.items ?? [];
+          setItems((prev) => [...prev, ...newItems]);
+          setHasMore(newItems.length >= size);
+        } else {
+          const responses = await Promise.all(
+            Array.from({ length: page + 1 }, (_, index) =>
+              getProductFeed({
+                page: index,
+                size,
+                category: selectedCategorySlug,
+                query: searchQuery,
+              }),
+            ),
+          );
+          const nextItems = responses.flatMap((response) => response.items ?? []);
+          const lastResponse = responses.at(-1);
+          setItems(nextItems);
+          setHasMore((lastResponse?.items?.length ?? 0) >= size);
+        }
+
+        previousFeedStateRef.current = {
+          category: selectedCategorySlug,
+          query: searchQuery,
+          page,
+        };
+      } catch (e) {
+        setError(asErrorMessage(e));
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    };
+
+    void loadFeed();
+  }, [page, searchQuery, selectedCategorySlug, size]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -118,15 +157,47 @@ function HomePageContent() {
     loadCategories();
   }, []);
 
-  const updateCategoryInUrl = useCallback((nextSlug: string | null) => {
+  const updateCatalogParams = useCallback((updates: {
+    category?: string | null;
+    query?: string | null;
+    page?: number | null;
+  }) => {
     const qs = new URLSearchParams(searchParams.toString());
-    if (nextSlug) {
-      qs.set("category", nextSlug);
-    } else {
+
+    if (updates.category !== undefined) {
+      if (updates.category) {
+        qs.set("category", updates.category);
+      } else {
+        qs.delete("category");
+      }
+    }
+
+    if (updates.query !== undefined) {
+      const nextQuery = updates.query?.trim() ?? "";
+      if (nextQuery) {
+        qs.set("query", nextQuery);
+      } else {
+        qs.delete("query");
+      }
+    }
+
+    if (updates.page !== undefined) {
+      const nextPage = updates.page ?? 0;
+      if (nextPage > 0) {
+        qs.set("page", String(nextPage));
+      } else {
+        qs.delete("page");
+      }
+    }
+
+    if (!qs.get("category")) {
       qs.delete("category");
     }
+
     const query = qs.toString();
-    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    startTransition(() => {
+      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    });
   }, [pathname, router, searchParams]);
 
   return (
@@ -159,12 +230,57 @@ function HomePageContent() {
                 {selectedCategoryName ? `Category: ${selectedCategoryName}` : "Browse categories"}
               </div>
             </div>
-            {selectedCategorySlug ? (
-              <button className="btn mt-3 w-fit" type="button" onClick={() => {
-                updateCategoryInUrl(null);
-              }}>
-                All products
-              </button>
+            <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+              <label className="relative block flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <input
+                  className="input pl-10 pr-10"
+                  type="search"
+                  placeholder="Search products"
+                  value={searchInput}
+                  onChange={(e) => {
+                    const nextQuery = e.target.value;
+                    setSearchInput(nextQuery);
+                    updateCatalogParams({ query: nextQuery, page: 0 });
+                  }}
+                />
+                {searchInput ? (
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
+                    onClick={() => {
+                      setSearchInput("");
+                      updateCatalogParams({ query: "", page: 0 });
+                    }}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </label>
+              {selectedCategorySlug ? (
+                <button
+                  className="btn w-fit"
+                  type="button"
+                  onClick={() => {
+                    updateCatalogParams({ category: null, page: 0 });
+                  }}
+                >
+                  All products
+                </button>
+              ) : null}
+            </div>
+            {(selectedCategorySlug || searchQuery) ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-300">
+                {selectedCategorySlug ? (
+                  <span className="badge">
+                    Category: {selectedCategoryName ?? selectedCategorySlug}
+                  </span>
+                ) : null}
+                {searchQuery ? (
+                  <span className="badge">Search: {searchQuery}</span>
+                ) : null}
+              </div>
             ) : null}
             <div className="mt-4">
               {categoriesLoading ? (
@@ -183,7 +299,10 @@ function HomePageContent() {
                   categories={categories}
                   selectedSlug={selectedCategorySlug}
                   onSelectCategory={(node) => {
-                    updateCategoryInUrl(selectedCategorySlug === node.slug ? null : node.slug);
+                    updateCatalogParams({
+                      category: selectedCategorySlug === node.slug ? null : node.slug,
+                      page: 0,
+                    });
                   }}
                 />
               )}
@@ -199,16 +318,25 @@ function HomePageContent() {
             </div>
           ) : (
             <>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {items.map((it) => (
-                  <ProductCard key={it.id} item={it} currency={currency} />
-                ))}
-              </div>
+              {items.length === 0 ? (
+                <div className="card mt-6 p-10 text-center">
+                  <div className="text-base font-semibold text-zinc-100">No products found</div>
+                  <div className="mt-2 text-sm text-zinc-400">
+                    Try another category or change the search query.
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                  {items.map((it) => (
+                    <ProductCard key={it.id} item={it} currency={currency} />
+                  ))}
+                </div>
+              )}
 
               <div className="mt-8 flex justify-center">
                 <button
                   className="btn btn-primary"
-                  onClick={() => load(page + 1, "append")}
+                  onClick={() => updateCatalogParams({ page: page + 1 })}
                   disabled={loadingMore || !canLoadMore}
                   title="Load the next page (if the API supports page/size)"
                 >
