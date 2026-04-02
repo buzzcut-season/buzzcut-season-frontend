@@ -235,91 +235,126 @@ function HomePageContent() {
             <div className="pointer-events-none absolute -bottom-24 left-[-50px] h-64 w-64 rounded-full bg-pink-500/10 blur-[90px]" />
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/15 to-transparent" />
 
-            <div className="space-y-1">
-              <div className="text-sm font-semibold tracking-tight text-zinc-100">Catalog</div>
-              <div className="text-xs text-zinc-400/90">
-                {selectedCategoryName ? `Category: ${selectedCategoryName}` : "Browse categories"}
+            <div className="relative z-10 flex flex-col gap-6">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div className="max-w-2xl space-y-3">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-zinc-300">
+                      Product catalog
+                    </span>
+                    <span>{items.length} visible</span>
+                  </div>
+                  <div className="space-y-2">
+                    <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">
+                      Find products without fighting the filters
+                    </h1>
+                    <p className="max-w-xl text-sm leading-6 text-zinc-400">
+                      Search first, then narrow by category. The toolbar keeps the active state compact, and the category map stays in its own section below.
+                    </p>
+                  </div>
+                  <div className="flex min-h-7 flex-wrap items-center gap-2 text-xs text-zinc-300">
+                    <span className="badge bg-white/10 text-zinc-100">
+                      {selectedCategoryName ? `Category: ${selectedCategoryName}` : "All categories"}
+                    </span>
+                    {normalizedSearchQuery ? (
+                      <span className="badge">Search: {normalizedSearchQuery}</span>
+                    ) : null}
+                    {page > 0 ? (
+                      <span className="badge">Page: {page + 1}</span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="w-full max-w-xl rounded-[24px] border border-white/10 bg-black/20 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <label className="relative block flex-1">
+                      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                      <input
+                        className="input !h-11 !rounded-2xl !border-white/10 !bg-black/30 !pl-12 !pr-10"
+                        type="search"
+                        placeholder="Search products"
+                        value={searchInput}
+                        onChange={(e) => {
+                          setSearchInput(e.target.value);
+                        }}
+                      />
+                      {searchInput ? (
+                        <button
+                          type="button"
+                          className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
+                          onClick={() => {
+                            setSearchInput("");
+                            updateCatalogParams({ query: "", page: 0 });
+                          }}
+                          aria-label="Clear search"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      ) : null}
+                    </label>
+                    <button
+                      className="btn h-11 rounded-2xl px-4"
+                      type="button"
+                      onClick={() => {
+                        setSearchInput("");
+                        updateCatalogParams({ category: null, query: "", page: 0 });
+                      }}
+                    >
+                      Reset filters
+                    </button>
+                  </div>
+                  <div className="mt-3 flex min-h-6 items-center text-xs text-zinc-500">
+                    Use search for names and keywords. Category selection lives below and does not shift the toolbar.
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center">
-              <label className="relative block flex-1">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-                <input
-                  className="input !pl-12 !pr-10"
-                  type="search"
-                  placeholder="Search products"
-                  value={searchInput}
-                  onChange={(e) => {
-                    setSearchInput(e.target.value);
-                  }}
-                />
-                {searchInput ? (
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
-                    onClick={() => {
-                      setSearchInput("");
-                      updateCatalogParams({ query: "", page: 0 });
-                    }}
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                ) : null}
-              </label>
-              {selectedCategorySlug ? (
-                <button
-                  className="btn w-fit"
-                  type="button"
-                  onClick={() => {
-                    updateCatalogParams({ category: null, page: 0 });
-                  }}
-                >
-                  All products
-                </button>
-              ) : null}
-            </div>
-            <div
-              className={`mt-3 flex min-h-6 flex-wrap items-center gap-2 text-xs text-zinc-300 transition-opacity ${
-              selectedCategorySlug || normalizedSearchQuery ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {selectedCategorySlug ? (
-                <span className="badge">
-                  Category: {selectedCategoryName ?? selectedCategorySlug}
-                </span>
-              ) : null}
-              {normalizedSearchQuery ? (
-                <span className="badge">Search: {normalizedSearchQuery}</span>
-              ) : null}
-              {!selectedCategorySlug && !normalizedSearchQuery ? (
-                <span className="badge pointer-events-none select-none">Filters</span>
-              ) : null}
-            </div>
-            <div className="mt-4">
-              {categoriesLoading ? (
-                <div className="flex items-center gap-2 text-[var(--muted)]">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading categories...
+
+              <div className="rounded-[24px] border border-white/10 bg-black/15 p-4 sm:p-5">
+                <div className="flex flex-col gap-2 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold tracking-tight text-zinc-100">Categories</div>
+                    <div className="mt-1 text-xs text-zinc-500">
+                      Pick a category to narrow the current feed. Search and category filters work together.
+                    </div>
+                  </div>
+                  {selectedCategorySlug ? (
+                    <button
+                      className="btn w-fit rounded-2xl"
+                      type="button"
+                      onClick={() => {
+                        updateCatalogParams({ category: null, page: 0 });
+                      }}
+                    >
+                      Clear category
+                    </button>
+                  ) : null}
                 </div>
-              ) : categoriesError ? (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-200">
-                  {categoriesError}
+                <div className="mt-5">
+                  {categoriesLoading ? (
+                    <div className="flex items-center gap-2 text-[var(--muted)]">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading categories...
+                    </div>
+                  ) : categoriesError ? (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-200">
+                      {categoriesError}
+                    </div>
+                  ) : categories.length === 0 ? (
+                    <div className="text-sm text-[var(--muted)]">No categories yet</div>
+                  ) : (
+                    <CategoryTree
+                      categories={categories}
+                      selectedSlug={selectedCategorySlug}
+                      onSelectCategory={(node) => {
+                        updateCatalogParams({
+                          category: selectedCategorySlug === node.slug ? null : node.slug,
+                          page: 0,
+                        });
+                      }}
+                    />
+                  )}
                 </div>
-              ) : categories.length === 0 ? (
-                <div className="text-sm text-[var(--muted)]">No categories yet</div>
-              ) : (
-                <CategoryTree
-                  categories={categories}
-                  selectedSlug={selectedCategorySlug}
-                  onSelectCategory={(node) => {
-                    updateCatalogParams({
-                      category: selectedCategorySlug === node.slug ? null : node.slug,
-                      page: 0,
-                    });
-                  }}
-                />
-              )}
+              </div>
             </div>
           </div>
 

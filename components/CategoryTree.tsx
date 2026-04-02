@@ -22,7 +22,7 @@ function CategoryTreeNode({
   const isRoot = level === 0;
   const isActive = selectedSlug === node.slug;
   return (
-    <div>
+    <div className={isRoot ? "rounded-2xl border border-white/10 bg-white/[0.035] p-4" : ""}>
       <button
         type="button"
         onClick={() => onSelectCategory(node)}
@@ -31,8 +31,10 @@ function CategoryTreeNode({
             ? `inline-flex text-base font-semibold tracking-tight transition sm:text-lg ${
                 isActive ? "text-pink-300" : "text-zinc-100 hover:text-pink-200"
               }`
-            : `flex items-start gap-2 text-xs transition duration-200 ${
-                isActive ? "text-pink-200" : "text-zinc-200/90 hover:text-zinc-100"
+            : `flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs transition duration-200 ${
+                isActive
+                  ? "bg-pink-500/10 text-pink-200"
+                  : "text-zinc-200/90 hover:bg-white/5 hover:text-zinc-100"
               }`
         }
         style={{ marginLeft: level * INDENT_PX }}
@@ -41,7 +43,7 @@ function CategoryTreeNode({
         <span className="leading-snug">{node.name}</span>
       </button>
       {node.children.length > 0 ? (
-        <div className="mt-2 space-y-2">
+        <div className={isRoot ? "mt-4 space-y-2 border-t border-white/10 pt-4" : "mt-2 space-y-2"}>
           {node.children.map((child) => (
             <CategoryTreeNode
               key={child.id}
@@ -59,7 +61,7 @@ function CategoryTreeNode({
 
 export function CategoryTree({ categories, selectedSlug, onSelectCategory }: CategoryTreeProps) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,max-content))] justify-start gap-x-8 gap-y-5">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {categories.map((node) => (
         <CategoryTreeNode
           key={node.id}
