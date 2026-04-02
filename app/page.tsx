@@ -230,14 +230,14 @@ function HomePageContent() {
         )}
 
         <div className="mt-6">
-          <div className="relative overflow-hidden rounded-[28px] border border-transparent bg-gradient-to-br from-[#161225]/95 via-[#0f0b18]/95 to-[#0b0a10]/98 px-6 py-5 shadow-[0_18px_50px_rgba(6,4,16,0.5),inset_0_0_0_1px_rgba(255,255,255,0.04)]">
+          <div className="relative overflow-hidden rounded-[24px] border border-transparent bg-gradient-to-br from-[#161225]/95 via-[#0f0b18]/95 to-[#0b0a10]/98 px-4 py-4 shadow-[0_18px_50px_rgba(6,4,16,0.5),inset_0_0_0_1px_rgba(255,255,255,0.04)] sm:px-5">
             <div className="pointer-events-none absolute -top-28 right-[-30px] h-56 w-56 rounded-full bg-violet-500/12 blur-[90px]" />
             <div className="pointer-events-none absolute -bottom-24 left-[-50px] h-64 w-64 rounded-full bg-pink-500/10 blur-[90px]" />
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/15 to-transparent" />
 
-            <div className="relative z-10 flex flex-col gap-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-3">
+            <div className="relative z-10 flex flex-col gap-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="text-base font-semibold tracking-tight text-zinc-100">Catalog</div>
                     <span className="badge">{items.length} items</span>
@@ -251,11 +251,11 @@ function HomePageContent() {
                   </div>
                 </div>
 
-                <div className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+                <div className="flex w-full max-w-xl flex-col gap-2 sm:flex-row">
                   <label className="relative block flex-1">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                     <input
-                      className="input !h-11 !rounded-2xl !border-white/10 !bg-black/30 !pl-12 !pr-10"
+                      className="input !h-10 !rounded-xl !border-white/10 !bg-black/30 !pl-12 !pr-10"
                       type="search"
                       placeholder="Search products"
                       value={searchInput}
@@ -279,7 +279,7 @@ function HomePageContent() {
                   </label>
                   {(selectedCategorySlug || normalizedSearchQuery) ? (
                     <button
-                      className="btn h-11 rounded-2xl px-4"
+                      className="btn h-10 rounded-xl px-4"
                       type="button"
                       onClick={() => {
                         setSearchInput("");
@@ -292,8 +292,8 @@ function HomePageContent() {
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-white/10 bg-black/15 p-4 sm:p-5">
-                <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-[20px] border border-white/10 bg-black/15 p-3.5 sm:p-4">
+                <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold tracking-tight text-zinc-100">Categories</div>
                   {selectedCategorySlug ? (
                     <button
