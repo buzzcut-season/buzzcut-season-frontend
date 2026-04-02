@@ -37,7 +37,8 @@ function HomePageContent() {
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(searchParams.get("query") ?? "");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
@@ -75,6 +76,7 @@ function HomePageContent() {
   }, []);
 
   useEffect(() => {
+    if (document.activeElement === searchInputRef.current) return;
     setSearchInput(searchQueryParam);
   }, [searchQueryParam]);
 
@@ -249,6 +251,7 @@ function HomePageContent() {
               <label className="relative block flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                 <input
+                  ref={searchInputRef}
                   className="input !pl-12 !pr-10"
                   type="search"
                   placeholder="Search products"
