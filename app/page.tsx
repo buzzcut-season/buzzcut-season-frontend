@@ -282,18 +282,23 @@ function HomePageContent() {
                 </button>
               ) : null}
             </div>
-            {(selectedCategorySlug || searchQuery) ? (
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-300">
-                {selectedCategorySlug ? (
-                  <span className="badge">
-                    Category: {selectedCategoryName ?? selectedCategorySlug}
-                  </span>
-                ) : null}
-                {searchQuery ? (
-                  <span className="badge">Search: {searchQuery}</span>
-                ) : null}
-              </div>
-            ) : null}
+            <div
+              className={`mt-3 flex min-h-6 flex-wrap items-center gap-2 text-xs text-zinc-300 transition-opacity ${
+                selectedCategorySlug || searchQuery ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              {selectedCategorySlug ? (
+                <span className="badge">
+                  Category: {selectedCategoryName ?? selectedCategorySlug}
+                </span>
+              ) : null}
+              {searchQuery ? (
+                <span className="badge">Search: {searchQuery}</span>
+              ) : null}
+              {!selectedCategorySlug && !searchQuery ? (
+                <span className="badge pointer-events-none select-none">Filters</span>
+              ) : null}
+            </div>
             <div className="mt-4">
               {categoriesLoading ? (
                 <div className="flex items-center gap-2 text-[var(--muted)]">
