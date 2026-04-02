@@ -61,7 +61,8 @@ function HomePageContent() {
   const [error, setError] = useState<string | null>(null);
 
   const selectedCategorySlug = searchParams.get("category");
-  const searchQuery = searchParams.get("query")?.trim() ?? "";
+  const searchQueryParam = searchParams.get("query") ?? "";
+  const normalizedSearchQuery = searchQueryParam.trim();
   const page = parsePage(searchParams.get("page"));
   const canLoadMore = hasMore;
   const selectedCategoryName = useMemo(() => {
@@ -74,8 +75,8 @@ function HomePageContent() {
   }, []);
 
   useEffect(() => {
-    setSearchInput(searchQuery);
-  }, [searchQuery]);
+    setSearchInput(searchQueryParam);
+  }, [searchQueryParam]);
 
   useEffect(() => {
     if (isAuthed && authOpen) {
@@ -88,7 +89,7 @@ function HomePageContent() {
     const canAppend =
       previousFeedState != null &&
       previousFeedState.category === selectedCategorySlug &&
-      previousFeedState.query === searchQuery &&
+      previousFeedState.query === normalizedSearchQuery &&
       page === previousFeedState.page + 1;
 
     const loadFeed = async () => {
@@ -105,7 +106,7 @@ function HomePageContent() {
             page,
             size,
             category: selectedCategorySlug,
-            query: searchQuery,
+            query: normalizedSearchQuery,
           });
           const newItems = res.items ?? [];
           setItems((prev) => [...prev, ...newItems]);
@@ -117,7 +118,7 @@ function HomePageContent() {
                 page: index,
                 size,
                 category: selectedCategorySlug,
-                query: searchQuery,
+                query: normalizedSearchQuery,
               }),
             ),
           );
@@ -129,7 +130,7 @@ function HomePageContent() {
 
         previousFeedStateRef.current = {
           category: selectedCategorySlug,
-          query: searchQuery,
+          query: normalizedSearchQuery,
           page,
         };
       } catch (e) {
@@ -141,7 +142,7 @@ function HomePageContent() {
     };
 
     void loadFeed();
-  }, [page, searchQuery, selectedCategorySlug, size]);
+  }, [normalizedSearchQuery, page, selectedCategorySlug, size]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -203,7 +204,7 @@ function HomePageContent() {
   }, [pathname, router, searchParams]);
 
   useEffect(() => {
-    if (searchInput === searchQuery) return;
+    if (searchInput.trim() === normalizedSearchQuery) return;
 
     const timeoutId = window.setTimeout(() => {
       updateCatalogParams({ query: searchInput, page: 0 });
@@ -212,7 +213,7 @@ function HomePageContent() {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [searchInput, searchQuery, updateCatalogParams]);
+  }, [normalizedSearchQuery, searchInput, updateCatalogParams]);
 
   return (
     <main className="min-h-screen pb-16">
@@ -284,7 +285,7 @@ function HomePageContent() {
             </div>
             <div
               className={`mt-3 flex min-h-6 flex-wrap items-center gap-2 text-xs text-zinc-300 transition-opacity ${
-                selectedCategorySlug || searchQuery ? "opacity-100" : "opacity-0"
+              selectedCategorySlug || normalizedSearchQuery ? "opacity-100" : "opacity-0"
               }`}
             >
               {selectedCategorySlug ? (
@@ -292,10 +293,10 @@ function HomePageContent() {
                   Category: {selectedCategoryName ?? selectedCategorySlug}
                 </span>
               ) : null}
-              {searchQuery ? (
-                <span className="badge">Search: {searchQuery}</span>
+              {normalizedSearchQuery ? (
+                <span className="badge">Search: {normalizedSearchQuery}</span>
               ) : null}
-              {!selectedCategorySlug && !searchQuery ? (
+              {!selectedCategorySlug && !normalizedSearchQuery ? (
                 <span className="badge pointer-events-none select-none">Filters</span>
               ) : null}
             </div>
