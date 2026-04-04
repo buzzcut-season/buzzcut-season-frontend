@@ -74,6 +74,7 @@ export type ProductFeedItem = {
     price: string;
   }> | null;
   image?: string | null;
+  reviews: ProductReviewsSummary;
 };
 
 export type ProductFeedResponse = {

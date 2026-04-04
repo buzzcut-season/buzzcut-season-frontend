@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Star } from "lucide-react";
 import type { ProductFeedItem } from "@/lib/types";
 
 function formatMoney(
@@ -35,6 +36,8 @@ export function ProductCard({
     .filter(Boolean);
   const hasPrice = !!fallback;
   const missingPreferred = !preferred && prices.length > 0;
+  const reviewCount = item.reviews?.totalCount ?? 0;
+  const averageRating = item.reviews?.averageRating ?? null;
 
   return (
     <div className="card group w-full overflow-hidden">
@@ -105,6 +108,19 @@ export function ProductCard({
               No price in {currency}. Showing {fallback.currency}.
             </span>
           ) : null}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          {reviewCount > 0 && averageRating ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-amber-100">
+              <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
+              {averageRating}
+              <span className="text-amber-100/70">· {reviewCount} review{reviewCount === 1 ? "" : "s"}</span>
+            </span>
+          ) : (
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[var(--muted)]">
+              No reviews yet
+            </span>
+          )}
         </div>
         <div className="mt-3 flex items-end justify-between gap-3">
           <div className="text-[var(--ink)] font-semibold">

@@ -19,6 +19,7 @@ import type {
   ProductReviewsResponse,
   PublishDraftResponse,
   ProductFeedResponse,
+  ProductFeedItem,
   RefreshTokenRequest,
   RefreshTokenResponse,
   Review,
@@ -82,6 +83,17 @@ type ProductCardWire = Omit<ProductCard, "reviews"> & {
     averageRating?: string | null;
     totalCount?: number | null;
   } | null;
+};
+
+type ProductFeedItemWire = Omit<ProductFeedItem, "reviews"> & {
+  reviews?: {
+    averageRating?: string | null;
+    totalCount?: number | null;
+  } | null;
+};
+
+type ProductFeedResponseWire = Omit<ProductFeedResponse, "items"> & {
+  items?: ProductFeedItemWire[] | null;
 };
 
 type AccountMeWire = Omit<AccountMe, "birthDate" | "gender"> & {
@@ -191,6 +203,23 @@ function normalizeProductCardResponse(product: ProductCardWire): ProductCard {
   };
 }
 
+function normalizeProductFeedItem(item: ProductFeedItemWire): ProductFeedItem {
+  return {
+    ...item,
+    reviews: {
+      averageRating: item.reviews?.averageRating ?? null,
+      totalCount: item.reviews?.totalCount ?? 0,
+    },
+  };
+}
+
+function normalizeProductFeedResponse(response: ProductFeedResponseWire): ProductFeedResponse {
+  return {
+    ...response,
+    items: (response.items ?? []).map(normalizeProductFeedItem),
+  };
+}
+
 function normalizeAccountMeResponse(account: AccountMeWire): AccountMe {
   return {
     ...account,
@@ -245,7 +274,8 @@ export async function getProductFeed(params?: {
   if (typeof params?.query === "string" && params.query.trim()) {
     qs.set("query", params.query.trim());
   }
-  return request<ProductFeedResponse>(`/api/v1/products?${qs.toString()}`, { method: "GET" });
+  const response = await request<ProductFeedResponseWire>(`/api/v1/products?${qs.toString()}`, { method: "GET" });
+  return normalizeProductFeedResponse(response);
 }
 
 export async function getProductCard(productId: number): Promise<ProductCard> {

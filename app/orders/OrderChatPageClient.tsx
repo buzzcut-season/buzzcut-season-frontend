@@ -882,7 +882,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                                   : "border-white/10 bg-white/5 text-zinc-200"
                               }`}
                             >
-                              <div className="mb-1 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-zinc-400/90">
+                              <div className="mb-1 flex items-center justify-between gap-3 text-[11px] tracking-[0.08em] text-zinc-400/90">
                                 <span className={isSystem ? "text-amber-200" : undefined}>
                                   {message.name || message.participant}
                                 </span>
