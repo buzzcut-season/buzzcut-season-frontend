@@ -1,5 +1,6 @@
 import type {
   AccountMe,
+  AccountGender,
   AuthenticateRequest,
   AuthenticateResponse,
   ChatMessagesResponse,
@@ -27,6 +28,7 @@ import type {
   SellerCreateRequest,
   SellerMe,
   UpdateDraftRequest,
+  UpdateAccountMeRequest,
 } from "./types";
 import { clearAuth, readAuth, updateAuthAccessToken } from "./storage";
 
@@ -80,6 +82,11 @@ type ProductCardWire = Omit<ProductCard, "reviews"> & {
     averageRating?: string | null;
     totalCount?: number | null;
   } | null;
+};
+
+type AccountMeWire = Omit<AccountMe, "birthDate" | "gender"> & {
+  birthDate?: string | null;
+  gender?: AccountGender | null;
 };
 
 type OrderListResponseWire = {
@@ -184,6 +191,14 @@ function normalizeProductCardResponse(product: ProductCardWire): ProductCard {
   };
 }
 
+function normalizeAccountMeResponse(account: AccountMeWire): AccountMe {
+  return {
+    ...account,
+    birthDate: account.birthDate ?? null,
+    gender: account.gender ?? null,
+  };
+}
+
 export async function getHealth(): Promise<HealthResponse> {
   return request<HealthResponse>("/actuator/health", { method: "GET" });
 }
@@ -203,7 +218,16 @@ export async function authenticate(body: AuthenticateRequest): Promise<Authentic
 }
 
 export async function getAccountMe(): Promise<AccountMe> {
-  return request<AccountMe>("/api/v1/accounts/me", { method: "GET" });
+  const response = await request<AccountMeWire>("/api/v1/accounts/me", { method: "GET" });
+  return normalizeAccountMeResponse(response);
+}
+
+export async function updateAccountMe(body: UpdateAccountMeRequest): Promise<AccountMe> {
+  const response = await request<AccountMeWire>("/api/v1/accounts/me", {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+  return normalizeAccountMeResponse(response);
 }
 
 export async function getProductFeed(params?: {

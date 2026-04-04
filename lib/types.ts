@@ -42,6 +42,17 @@ export type SellerCreateRequest = {
 export type AccountMe = {
   id: number;
   email: string;
+  nickname: string;
+  birthDate: string | null;
+  gender: AccountGender | null;
+};
+
+export type AccountGender = "MALE" | "FEMALE";
+
+export type UpdateAccountMeRequest = {
+  nickname: string;
+  birthDate: string | null;
+  gender: AccountGender | null;
 };
 
 export type SellerStatus = "ACTIVE" | string;

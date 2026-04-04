@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogIn, User } from "lucide-react";
 import { ApiHttpError, asErrorMessage, createSeller, getAccountMe, getSellerMe } from "@/lib/api";
-import { clearAuth } from "@/lib/storage";
+import {
+  ACCOUNT_PROFILE_UPDATED_EVENT,
+  clearAccountProfile,
+  clearAuth,
+  readAccountProfile,
+  writeAccountProfile,
+} from "@/lib/storage";
 import type { AccountMe, SellerMe } from "@/lib/types";
 
 const CURRENCIES = ["RUB", "USD", "EUR"] as const;
@@ -42,11 +48,31 @@ export function Header({
   }, [menuOpen]);
 
   useEffect(() => {
+    if (!isAuthed) return;
+
+    const cached = readAccountProfile();
+    if (cached) {
+      setAccount(cached);
+    }
+
+    function handleProfileUpdated(event: Event) {
+      const detail = (event as CustomEvent<AccountMe | undefined>).detail;
+      setAccount(detail ?? readAccountProfile());
+    }
+
+    window.addEventListener(ACCOUNT_PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    return () => {
+      window.removeEventListener(ACCOUNT_PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    };
+  }, [isAuthed]);
+
+  useEffect(() => {
     if (!isAuthed) {
       setProfileLoading(false);
       setProfileError(null);
       setAccount(null);
       setSeller(null);
+      clearAccountProfile();
       return;
     }
 
@@ -59,6 +85,7 @@ export function Header({
           const accountMe = await getAccountMe();
           if (cancelled) return;
           setAccount(accountMe);
+          writeAccountProfile(accountMe);
         } catch (e) {
           if (cancelled) return;
           if (e instanceof ApiHttpError && (e.status === 401 || e.status === 403)) {
@@ -99,6 +126,7 @@ export function Header({
 
   function logout() {
     clearAuth();
+    clearAccountProfile();
     setProfileError(null);
     setAccount(null);
     setSeller(null);
@@ -196,7 +224,8 @@ export function Header({
                 >
                   {account && (
                     <div className="px-3 py-2 text-xs text-zinc-600 break-all">
-                      {account.email}
+                      <div className="font-medium text-zinc-800">{account.nickname}</div>
+                      <div>{account.email}</div>
                     </div>
                   )}
                   {seller && (
@@ -209,9 +238,14 @@ export function Header({
                       {profileError}
                     </div>
                   )}
-                  <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
+                  <Link
+                    href="/profile"
+                    className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     Profile
-                  </button>
+                  </Link>
                   <Link
                     href="/orders"
                     className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
