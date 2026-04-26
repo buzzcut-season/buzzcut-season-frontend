@@ -20,7 +20,7 @@ import {
   uploadFileToPresignedUrl,
 } from "@/lib/api";
 import { readAuth } from "@/lib/storage";
-import type { CategoryNode, SellerDraft } from "@/lib/types";
+import type { CategoryNode, SellerDraft, SellerDraftStatus } from "@/lib/types";
 
 type DraftFormState = {
   name: string;
@@ -39,6 +39,15 @@ const EMPTY_FORM: DraftFormState = {
 };
 
 const DRAFT_FORM_STORAGE_PREFIX = "buzzcut.seller.draftForm";
+
+function isDraftReadonly(status?: SellerDraftStatus): boolean {
+  return status === "PUBLISHING_STARTED";
+}
+
+function getDraftStatusLabel(status?: SellerDraftStatus): string {
+  if (status === "PUBLISHING_STARTED") return "Publishing";
+  return status ?? "unknown";
+}
 
 function flattenCategories(nodes: CategoryNode[], level = 0): Array<{ id: number; label: string }> {
   return nodes.flatMap((node) => [
@@ -118,6 +127,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   const [error, setError] = useState<string | null>(null);
 
   const categoryOptions = useMemo(() => flattenCategories(categories), [categories]);
+  const isDraftLocked = isDraftReadonly(draft?.status);
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
@@ -137,6 +147,11 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     try {
       const loaded = await getDraft(id);
       setDraft(loaded);
+      if (loaded.status === "PUBLISHING_STARTED") {
+        setStep("images");
+        fillForm(loaded);
+        return;
+      }
       const storedForm = readDraftFormState(id);
       if (storedForm) {
         setForm(storedForm);
@@ -228,7 +243,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   }
 
   async function onNext() {
-    if (!draftId || saving) return;
+    if (!draftId || saving || isDraftLocked) return;
     const categoryId = Number(form.categoryId);
     const normalizedPrice = normalizePrice(form.price);
     if (!form.name.trim() || !form.description.trim() || !normalizedPrice || Number.isNaN(categoryId)) {
@@ -260,7 +275,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   }
 
   async function onUploadImages(files: FileList | null) {
-    if (!draftId || !files?.length || uploading) return;
+    if (!draftId || !files?.length || uploading || isDraftLocked) return;
     setUploading(true);
     setError(null);
     setMessage(null);
@@ -283,7 +298,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   }
 
   async function onDeleteImage(position: number) {
-    if (!draftId) return;
+    if (!draftId || isDraftLocked) return;
     setError(null);
     setMessage(null);
     try {
@@ -380,10 +395,16 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                       {step === "details" ? "Step 1 of 2: Product details" : "Step 2 of 2: Images and publish"}
                     </div>
                     <div className="text-xs text-zinc-400">
-                      Status: <span className="text-zinc-200">{draft?.status ?? "unknown"}</span>
+                      Status: <span className="text-zinc-200">{getDraftStatusLabel(draft?.status)}</span>
                     </div>
                   </div>
                 </div>
+
+                {isDraftLocked ? (
+                  <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+                    Product publication has started. This draft is no longer editable.
+                  </div>
+                ) : null}
 
                 {step === "details" ? (
                   <>
@@ -394,6 +415,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                           className="input mt-1"
                           value={form.name}
                           onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                          disabled={isDraftLocked}
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -402,6 +424,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                           className="input mt-1 min-h-[90px]"
                           value={form.description}
                           onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                          disabled={isDraftLocked}
                         />
                       </div>
                       <div>
@@ -410,6 +433,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                           className="input mt-1"
                           value={form.currency}
                           onChange={(e) => setForm((prev) => ({ ...prev, currency: e.target.value }))}
+                          disabled={isDraftLocked}
                         >
                           <option value="USD">USD</option>
                           <option value="EUR">EUR</option>
@@ -431,6 +455,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                               setForm((prev) => ({ ...prev, price: normalized }));
                             }
                           }}
+                          disabled={isDraftLocked}
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -439,7 +464,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                           className="input mt-1"
                           value={form.categoryId}
                           onChange={(e) => setForm((prev) => ({ ...prev, categoryId: e.target.value }))}
-                          disabled={categoriesLoading || !!categoriesError}
+                          disabled={isDraftLocked || categoriesLoading || !!categoriesError}
                         >
                           <option value="">Select category</option>
                           {categoryOptions.map((item) => (
@@ -454,7 +479,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <button className="btn btn-primary" onClick={onNext} disabled={saving}>
+                      <button className="btn btn-primary" onClick={onNext} disabled={saving || isDraftLocked}>
                         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         Next
                       </button>
@@ -464,7 +489,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                   <>
                     <div className="space-y-3">
                       <div className="text-sm font-medium">Images</div>
-                      <label className="btn cursor-pointer w-fit">
+                      <label className={`btn w-fit ${isDraftLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}>
                         {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         {uploading ? "Uploading..." : "Upload images"}
                         <input
@@ -472,6 +497,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                           className="hidden"
                           accept="image/*"
                           multiple
+                          disabled={isDraftLocked}
                           onChange={(e) => {
                             void onUploadImages(e.target.files);
                             e.currentTarget.value = "";
@@ -521,7 +547,11 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
                               </div>
                               <div className="mt-2 flex items-center justify-between">
                                 <div className="text-xs text-zinc-400">Image</div>
-                                <button className="btn px-2 py-1 text-xs" onClick={() => onDeleteImage(img.position)}>
+                                <button
+                                  className="btn px-2 py-1 text-xs"
+                                  onClick={() => onDeleteImage(img.position)}
+                                  disabled={isDraftLocked}
+                                >
                                   <Trash2 className="h-3.5 w-3.5" />
                                   Delete
                                 </button>

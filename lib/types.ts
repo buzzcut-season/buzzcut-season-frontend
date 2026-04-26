@@ -121,7 +121,14 @@ export type CategoryTreeResponse = {
 
 export type DraftCurrency = "RUB" | "USD" | "EUR" | string;
 
-export type SellerDraftStatus = "EMPTY" | "IN_PROGRESS" | "READY" | "PUBLISHED" | "CANCELED" | string;
+export type SellerDraftStatus =
+  | "EMPTY"
+  | "IN_PROGRESS"
+  | "READY"
+  | "PUBLISHING_STARTED"
+  | "PUBLISHED"
+  | "CANCELED"
+  | string;
 
 export type DraftImage = {
   position: number;
