@@ -66,13 +66,20 @@ export type SellerMe = {
   updatedAt: string;
 };
 
+export type CurrencyCode = "RUB" | "USD" | "EUR";
+
+export type ProductPriceFields = {
+  priceUsd?: string | null;
+  priceEur?: string | null;
+  priceRub?: string | null;
+};
+
 export type ProductFeedItem = {
   id: number;
   name: string;
-  prices?: Array<{
-    currency: string;
-    price: string;
-  }> | null;
+  priceUsd?: string | null;
+  priceEur?: string | null;
+  priceRub?: string | null;
   image?: string | null;
   reviews: ProductReviewsSummary;
 };
@@ -103,7 +110,9 @@ export type ProductCard = {
   name: string;
   description: string;
   seller: string;
-  prices: ProductCardPrice[];
+  priceUsd?: string | null;
+  priceEur?: string | null;
+  priceRub?: string | null;
   images: ProductCardImage[];
   reviews: ProductReviewsSummary;
 };
@@ -119,7 +128,7 @@ export type CategoryTreeResponse = {
   categories: CategoryNode[];
 };
 
-export type DraftCurrency = "RUB" | "USD" | "EUR" | string;
+export type DraftCurrency = CurrencyCode | string;
 
 export type SellerDraftStatus =
   | "EMPTY"

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import type { ProductFeedItem } from "@/lib/types";
+import { getAvailableCurrencies, getPriceForCurrency } from "@/lib/product-prices";
 
 function formatMoney(
   price: string | null | undefined,
@@ -26,16 +27,11 @@ export function ProductCard({
   currency,
 }: {
   item: ProductFeedItem;
-  currency: string;
+  currency: "RUB" | "USD" | "EUR";
 }) {
-  const prices = item.prices ?? [];
-  const preferred = prices.find((price) => price.currency === currency) ?? null;
-  const fallback = preferred ?? prices[0] ?? null;
-  const availableCurrencies = prices
-    .map((price) => price.currency)
-    .filter(Boolean);
-  const hasPrice = !!fallback;
-  const missingPreferred = !preferred && prices.length > 0;
+  const selectedPrice = getPriceForCurrency(item, currency);
+  const availableCurrencies = getAvailableCurrencies(item);
+  const hasPrice = selectedPrice != null;
   const reviewCount = item.reviews?.totalCount ?? 0;
   const averageRating = item.reviews?.averageRating ?? null;
 
@@ -103,11 +99,6 @@ export function ProductCard({
               no prices
             </span>
           )}
-          {missingPreferred && fallback ? (
-            <span>
-              No price in {currency}. Showing {fallback.currency}.
-            </span>
-          ) : null}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
           {reviewCount > 0 && averageRating ? (
@@ -124,9 +115,7 @@ export function ProductCard({
         </div>
         <div className="mt-3 flex items-end justify-between gap-3">
           <div className="text-[var(--ink)] font-semibold">
-            {hasPrice
-              ? formatMoney(fallback?.price, fallback?.currency)
-              : "Price unavailable"}
+            {hasPrice ? formatMoney(selectedPrice, currency) : "Price unavailable"}
           </div>
           <Link className="btn btn-primary" href={`/product/${item.id}`}>
             Open card

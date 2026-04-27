@@ -9,8 +9,9 @@ import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { ApiHttpError, asErrorMessage, createOrder, getProductCard } from "@/lib/api";
+import { getPriceForCurrency } from "@/lib/product-prices";
 import { readAuth } from "@/lib/storage";
-import type { ProductCard as ProductCardType } from "@/lib/types";
+import type { CurrencyCode, ProductCard as ProductCardType } from "@/lib/types";
 
 type PageProps = {
   params: Promise<{ productId: string }>;
@@ -35,7 +36,7 @@ export default function ProductPage({ params }: PageProps) {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
-  const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("RUB");
+  const [currency, setCurrency] = useState<CurrencyCode>("RUB");
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
@@ -110,10 +111,7 @@ export default function ProductPage({ params }: PageProps) {
   }, [params]);
 
   const images = useMemo(() => product?.images ?? [], [product]);
-  const selectedPrice = useMemo(
-    () => product?.prices?.find((price) => price.currency === currency) ?? null,
-    [product, currency],
-  );
+  const selectedPrice = useMemo(() => getPriceForCurrency(product, currency), [product, currency]);
 
   const handleBuy = useCallback(async () => {
     if (!product) return;
@@ -265,7 +263,7 @@ export default function ProductPage({ params }: PageProps) {
                     <div className="text-xs uppercase tracking-[0.18em] text-zinc-300/80">Price · {currency}</div>
                     {selectedPrice ? (
                       <div className="mt-2 text-3xl font-semibold text-zinc-50">
-                        {formatPrice(selectedPrice.price, selectedPrice.currency)}
+                        {formatPrice(selectedPrice, currency)}
                       </div>
                     ) : (
                       <div className="mt-2 text-sm text-zinc-300">Price to be confirmed</div>
