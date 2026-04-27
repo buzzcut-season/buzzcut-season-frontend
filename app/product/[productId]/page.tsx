@@ -249,10 +249,10 @@ export default function ProductPage({ params }: PageProps) {
                       <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
                         <Star className="h-3.5 w-3.5 text-amber-300" />
                         <span>
-                          {product.reviews.averageRating == null
+                          {product.ratingAvg == null
                             ? "Пока нет отзывов"
-                            : `${product.reviews.averageRating} · ${product.reviews.totalCount} review${
-                                product.reviews.totalCount === 1 ? "" : "s"
+                            : `${product.ratingAvg} · ${product.reviewsCount ?? 0} review${
+                                (product.reviewsCount ?? 0) === 1 ? "" : "s"
                               }`}
                         </span>
                       </div>
@@ -304,12 +304,12 @@ export default function ProductPage({ params }: PageProps) {
                   <Star className="h-4 w-4 text-pink-300" />
                   <h2 className="text-sm font-semibold">Rating</h2>
                 </div>
-                {product.reviews.averageRating == null ? (
+                {product.ratingAvg == null ? (
                   <p className="mt-2 text-sm text-[var(--muted)]">Пока нет отзывов</p>
                 ) : (
                   <p className="mt-2 text-sm text-[var(--muted)]">
-                    {product.reviews.averageRating} average rating based on {product.reviews.totalCount} review
-                    {product.reviews.totalCount === 1 ? "" : "s"}.
+                    {product.ratingAvg} average rating based on {product.reviewsCount ?? 0} review
+                    {(product.reviewsCount ?? 0) === 1 ? "" : "s"}.
                   </p>
                 )}
               </section>
@@ -324,7 +324,13 @@ export default function ProductPage({ params }: PageProps) {
               </section>
             </div>
 
-            <ProductReviewsSection productId={product.id} summary={product.reviews} />
+            <ProductReviewsSection
+              productId={product.id}
+              summary={{
+                ratingAvg: product.ratingAvg ?? null,
+                reviewsCount: product.reviewsCount ?? 0,
+              }}
+            />
           </div>
         ) : (
           <div className="card p-6">

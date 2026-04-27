@@ -32,8 +32,8 @@ export function ProductCard({
   const selectedPrice = getPriceForCurrency(item, currency);
   const availableCurrencies = getAvailableCurrencies(item);
   const hasPrice = selectedPrice != null;
-  const reviewCount = item.reviews?.totalCount ?? 0;
-  const averageRating = item.reviews?.averageRating ?? null;
+  const reviewCount = item.reviewsCount ?? 0;
+  const averageRating = item.ratingAvg ?? null;
 
   return (
     <div className="card group w-full overflow-hidden">

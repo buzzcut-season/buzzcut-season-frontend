@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, MessageCircle, Star } from "lucide-react";
 import { asErrorMessage, getProductReviews } from "@/lib/api";
-import type { ProductReviewsSummary, Review } from "@/lib/types";
+import type { ProductReviewStats, Review } from "@/lib/types";
 import { RatingStars } from "@/components/RatingStars";
 
 function formatReviewDate(value: string): string {
@@ -20,11 +20,11 @@ export function ProductReviewsSection({
   summary,
 }: {
   productId: number;
-  summary: ProductReviewsSummary;
+  summary: ProductReviewStats;
 }) {
   const [items, setItems] = useState<Review[]>([]);
-  const [averageRating, setAverageRating] = useState<string | null>(summary.averageRating);
-  const [totalCount, setTotalCount] = useState(summary.totalCount);
+  const [averageRating, setAverageRating] = useState<string | null>(summary.ratingAvg);
+  const [totalCount, setTotalCount] = useState(summary.reviewsCount);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,17 +39,17 @@ export function ProductReviewsSection({
     } catch (err) {
       setError(asErrorMessage(err));
       setItems([]);
-      setAverageRating(summary.averageRating);
-      setTotalCount(summary.totalCount);
+      setAverageRating(summary.ratingAvg);
+      setTotalCount(summary.reviewsCount);
     } finally {
       setLoading(false);
     }
-  }, [productId, summary.averageRating, summary.totalCount]);
+  }, [productId, summary.ratingAvg, summary.reviewsCount]);
 
   useEffect(() => {
-    setAverageRating(summary.averageRating);
-    setTotalCount(summary.totalCount);
-  }, [summary.averageRating, summary.totalCount]);
+    setAverageRating(summary.ratingAvg);
+    setTotalCount(summary.reviewsCount);
+  }, [summary.ratingAvg, summary.reviewsCount]);
 
   useEffect(() => {
     void loadReviews();

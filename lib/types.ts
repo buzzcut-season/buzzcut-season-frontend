@@ -81,7 +81,8 @@ export type ProductFeedItem = {
   priceEur?: string | null;
   priceRub?: string | null;
   image?: string | null;
-  reviews: ProductReviewsSummary;
+  ratingAvg?: string | null;
+  reviewsCount?: number | null;
 };
 
 export type ProductFeedResponse = {
@@ -90,19 +91,14 @@ export type ProductFeedResponse = {
   items: ProductFeedItem[];
 };
 
-export type ProductCardPrice = {
-  currency: string;
-  price: string;
-};
-
 export type ProductCardImage = {
   position: number;
   image: string;
 };
 
-export type ProductReviewsSummary = {
-  averageRating: string | null;
-  totalCount: number;
+export type ProductReviewStats = {
+  ratingAvg: string | null;
+  reviewsCount: number;
 };
 
 export type ProductCard = {
@@ -114,7 +110,8 @@ export type ProductCard = {
   priceEur?: string | null;
   priceRub?: string | null;
   images: ProductCardImage[];
-  reviews: ProductReviewsSummary;
+  ratingAvg?: string | null;
+  reviewsCount?: number | null;
 };
 
 export type CategoryNode = {

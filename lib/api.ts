@@ -78,19 +78,9 @@ type OrderPageResponseWire = OrderResponseWire & {
   review?: Review | null;
 };
 
-type ProductCardWire = Omit<ProductCard, "reviews"> & {
-  reviews?: {
-    averageRating?: string | null;
-    totalCount?: number | null;
-  } | null;
-};
+type ProductCardWire = ProductCard;
 
-type ProductFeedItemWire = Omit<ProductFeedItem, "reviews"> & {
-  reviews?: {
-    averageRating?: string | null;
-    totalCount?: number | null;
-  } | null;
-};
+type ProductFeedItemWire = ProductFeedItem;
 
 type ProductFeedResponseWire = Omit<ProductFeedResponse, "items"> & {
   items?: ProductFeedItemWire[] | null;
@@ -196,20 +186,16 @@ function normalizeOrderListResponse(response: OrderListResponseWire): OrderListR
 function normalizeProductCardResponse(product: ProductCardWire): ProductCard {
   return {
     ...product,
-    reviews: {
-      averageRating: product.reviews?.averageRating ?? null,
-      totalCount: product.reviews?.totalCount ?? 0,
-    },
+    ratingAvg: product.ratingAvg ?? null,
+    reviewsCount: product.reviewsCount ?? 0,
   };
 }
 
 function normalizeProductFeedItem(item: ProductFeedItemWire): ProductFeedItem {
   return {
     ...item,
-    reviews: {
-      averageRating: item.reviews?.averageRating ?? null,
-      totalCount: item.reviews?.totalCount ?? 0,
-    },
+    ratingAvg: item.ratingAvg ?? null,
+    reviewsCount: item.reviewsCount ?? 0,
   };
 }
 
