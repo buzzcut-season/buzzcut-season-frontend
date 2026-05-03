@@ -13,17 +13,18 @@ import type { OrderResponse } from "@/lib/types";
 
 const PAGE_SIZE = 20;
 
-function formatOrderAmount(amount: number, currency: string, precision: number): string {
-  if (!Number.isFinite(amount)) return "Price unavailable";
+function formatOrderPrice(price: string, currency: string): string {
+  const amount = Number(price);
+  if (!Number.isFinite(amount)) return price ? `${price} ${currency}` : "Price unavailable";
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
-      minimumFractionDigits: precision,
-      maximumFractionDigits: precision,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   } catch {
-    return `${amount.toFixed(precision)} ${currency}`;
+    return `${price} ${currency}`;
   }
 }
 
@@ -164,7 +165,7 @@ export default function SellerOrdersPage() {
                             Order #{order.orderId} · {order.status}
                           </div>
                           <div className="text-xs text-zinc-400">
-                            {formatOrderAmount(order.amount, order.currency, order.precision)}
+                            {formatOrderPrice(order.price, order.currency)}
                           </div>
                         </div>
                         {order.displaySettings.coverImage ? (

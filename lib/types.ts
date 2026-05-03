@@ -60,10 +60,7 @@ export type SellerStatus = "ACTIVE" | string;
 export type SellerMe = {
   id: number;
   name: string;
-  userId: number;
   status: SellerStatus;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type CurrencyCode = "RUB" | "USD" | "EUR";
@@ -199,10 +196,7 @@ export type OrderDisplaySettings = {
 export type OrderResponse = {
   orderId: number;
   productId: number;
-  sellerId: number;
-  buyerId: number;
-  amount: number;
-  precision: number;
+  price: string;
   currency: string;
   status: OrderStatus;
   createdAt: string;

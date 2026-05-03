@@ -37,17 +37,18 @@ type StompFrame = {
   body: string;
 };
 
-function formatPrice(amount: number | null | undefined, currency: string, precision = 2): string {
-  if (amount == null || !Number.isFinite(amount)) return "Price unavailable";
+function formatPrice(price: string | null | undefined, currency: string): string {
+  const amount = Number(price);
+  if (!price || !Number.isFinite(amount)) return "Price unavailable";
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
-      minimumFractionDigits: precision,
-      maximumFractionDigits: precision,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   } catch {
-    return `${amount.toFixed(precision)} ${currency}`;
+    return `${price} ${currency}`;
   }
 }
 
@@ -647,7 +648,7 @@ export function OrderChatPageClient({ params, role }: OrderChatPageClientProps) 
                 </div>
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                   <span className="text-zinc-400">Amount</span>
-                  <span>{formatPrice(order.amount, order.currency, order.precision)}</span>
+                  <span>{formatPrice(order.price, order.currency)}</span>
                 </div>
                 <div className="flex justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                   <span className="text-zinc-400">Currency</span>

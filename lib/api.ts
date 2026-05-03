@@ -154,6 +154,34 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+async function requestVoid(path: string, init?: RequestInit): Promise<void> {
+  const auth = readAuth();
+  const res = await fetch(`${getApiBase()}${path}`, {
+    ...init,
+    headers: buildHeaders(init, auth?.accessToken),
+  });
+
+  if (!res.ok) {
+    if ((res.status === 401 || res.status === 403) && path !== REFRESH_PATH) {
+      const nextAccessToken = await refreshAccessToken();
+      if (nextAccessToken) {
+        const retryRes = await fetch(`${getApiBase()}${path}`, {
+          ...init,
+          headers: buildHeaders(init, nextAccessToken),
+        });
+        if (retryRes.ok) {
+          return;
+        }
+        const retryText = await retryRes.text().catch(() => "");
+        throw new ApiHttpError(retryRes.status, retryText, retryRes.statusText);
+      }
+      clearAuth();
+    }
+    const text = await res.text().catch(() => "");
+    throw new ApiHttpError(res.status, text, res.statusText);
+  }
+}
+
 function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
   const orderId = order.orderId ?? order.id;
   if (orderId == null) {
@@ -283,8 +311,8 @@ export async function getCategoryTree(): Promise<CategoryTreeResponse> {
   return request<CategoryTreeResponse>("/api/v1/categories/tree", { method: "GET" });
 }
 
-export async function createSeller(body: SellerCreateRequest): Promise<unknown> {
-  return request<unknown>("/api/v1/sellers", {
+export async function createSeller(body: SellerCreateRequest): Promise<SellerMe> {
+  return request<SellerMe>("/api/v1/sellers", {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -298,8 +326,8 @@ export async function createDraft(): Promise<CreateDraftResponse> {
   return request<CreateDraftResponse>("/api/seller/v1/drafts", { method: "POST" });
 }
 
-export async function updateDraft(draftId: number, body: UpdateDraftRequest): Promise<SellerDraft> {
-  return request<SellerDraft>(`/api/seller/v1/drafts/${draftId}`, {
+export async function updateDraft(draftId: number, body: UpdateDraftRequest): Promise<void> {
+  return requestVoid(`/api/seller/v1/drafts/${draftId}`, {
     method: "PUT",
     body: JSON.stringify(body),
   });
@@ -339,15 +367,15 @@ export async function uploadFileToPresignedUrl(uploadUrl: string, file: File): P
 export async function confirmDraftImage(
   draftId: number,
   body: ConfirmDraftImageRequest,
-): Promise<CreateDraftResponse> {
-  return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/images/confirm`, {
+): Promise<void> {
+  return requestVoid(`/api/seller/v1/drafts/${draftId}/images/confirm`, {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
-export async function deleteDraftImage(draftId: number, position: number): Promise<CreateDraftResponse> {
-  return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/images/${position}`, {
+export async function deleteDraftImage(draftId: number, position: number): Promise<void> {
+  return requestVoid(`/api/seller/v1/drafts/${draftId}/images/${position}`, {
     method: "DELETE",
   });
 }
@@ -356,8 +384,8 @@ export async function publishDraft(draftId: number): Promise<PublishDraftRespons
   return request<PublishDraftResponse>(`/api/seller/v1/drafts/${draftId}/publish`, { method: "POST" });
 }
 
-export async function cancelDraft(draftId: number): Promise<CreateDraftResponse> {
-  return request<CreateDraftResponse>(`/api/seller/v1/drafts/${draftId}/cancel`, { method: "POST" });
+export async function cancelDraft(draftId: number): Promise<void> {
+  return requestVoid(`/api/seller/v1/drafts/${draftId}/cancel`, { method: "POST" });
 }
 
 export async function createOrder(body: CreateOrderRequest): Promise<OrderResponse> {

@@ -255,18 +255,17 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     setError(null);
     setMessage(null);
     try {
-      const updated = await updateDraft(draftId, {
+      await updateDraft(draftId, {
         name: form.name.trim(),
         description: form.description.trim(),
         currency: form.currency,
         price: normalizedPrice,
         categoryId,
       });
-      setDraft(updated);
-      fillForm(updated);
+      await refreshDraft(draftId);
       setForm((prev) => ({ ...prev, price: normalizedPrice }));
       setStep("images");
-      setMessage(`Details saved. Status: ${updated.status}`);
+      setMessage("Details saved");
     } catch (e) {
       setError(asErrorMessage(e));
     } finally {
