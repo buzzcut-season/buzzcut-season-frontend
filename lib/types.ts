@@ -35,10 +35,6 @@ export type RefreshTokenResponse = {
   expiresAt: string;
 };
 
-export type SellerCreateRequest = {
-  name: string;
-};
-
 export type AccountMe = {
   id: number;
   email: string;
@@ -53,14 +49,6 @@ export type UpdateAccountMeRequest = {
   nickname: string;
   birthDate: string | null;
   gender: AccountGender | null;
-};
-
-export type SellerStatus = "ACTIVE" | string;
-
-export type SellerMe = {
-  id: number;
-  name: string;
-  status: SellerStatus;
 };
 
 export type CurrencyCode = "RUB" | "USD" | "EUR";
@@ -100,6 +88,7 @@ export type ProductReviewStats = {
 
 export type ProductCard = {
   id: number;
+  sellerId: number;
   name: string;
   description: string;
   seller: string;

@@ -26,8 +26,6 @@ import type {
   SellerDraft,
   SendCodeRequest,
   SendCodeResponse,
-  SellerCreateRequest,
-  SellerMe,
   UpdateDraftRequest,
   UpdateAccountMeRequest,
 } from "./types";
@@ -106,7 +104,7 @@ function buildHeaders(init?: RequestInit, accessToken?: string): Headers {
   return headers;
 }
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const auth = readAuth();
   if (!auth?.refreshToken) return null;
 
@@ -311,15 +309,14 @@ export async function getCategoryTree(): Promise<CategoryTreeResponse> {
   return request<CategoryTreeResponse>("/api/v1/categories/tree", { method: "GET" });
 }
 
-export async function createSeller(body: SellerCreateRequest): Promise<SellerMe> {
-  return request<SellerMe>("/api/v1/sellers", {
+export async function createSeller(): Promise<void> {
+  await requestVoid("/api/v1/sellers", {
     method: "POST",
-    body: JSON.stringify(body),
   });
-}
-
-export async function getSellerMe(): Promise<SellerMe> {
-  return request<SellerMe>("/api/v1/sellers/me", { method: "GET" });
+  const nextAccessToken = await refreshAccessToken();
+  if (!nextAccessToken) {
+    throw new Error("Seller created, but access token refresh failed");
+  }
 }
 
 export async function createDraft(): Promise<CreateDraftResponse> {

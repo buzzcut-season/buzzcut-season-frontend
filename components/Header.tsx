@@ -3,17 +3,69 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogIn, User } from "lucide-react";
-import { ApiHttpError, asErrorMessage, createSeller, getAccountMe, getSellerMe } from "@/lib/api";
+import { ApiHttpError, asErrorMessage, createSeller, getAccountMe } from "@/lib/api";
 import {
   ACCOUNT_PROFILE_UPDATED_EVENT,
   clearAccountProfile,
   clearAuth,
+  readAuth,
   readAccountProfile,
   writeAccountProfile,
 } from "@/lib/storage";
-import type { AccountMe, SellerMe } from "@/lib/types";
+import type { AccountMe } from "@/lib/types";
 
 const CURRENCIES = ["RUB", "USD", "EUR"] as const;
+
+function parseJwtPayload(token: string): Record<string, unknown> | null {
+  const parts = token.split(".");
+  if (parts.length < 2) return null;
+
+  try {
+    const normalized = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+    const json = atob(padded);
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function payloadHasSellerRole(payload: Record<string, unknown> | null): boolean {
+  if (!payload) return false;
+
+  const values = [
+    payload.role,
+    payload.roles,
+    payload.authorities,
+    payload.permissions,
+    payload.scope,
+    payload.scopes,
+  ];
+
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      if (value.some((entry) => typeof entry === "string" && entry.toUpperCase().includes("SELLER"))) {
+        return true;
+      }
+      continue;
+    }
+
+    if (typeof value === "string") {
+      const parts = value.split(/[,\s]+/).filter(Boolean);
+      if (parts.some((entry) => entry.toUpperCase().includes("SELLER"))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function hasSellerAccess(): boolean {
+  const token = readAuth()?.accessToken;
+  if (!token) return false;
+  return payloadHasSellerRole(parseJwtPayload(token));
+}
 
 export function Header({
   onOpenAuth,
@@ -32,7 +84,7 @@ export function Header({
   const [sellerBusy, setSellerBusy] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [account, setAccount] = useState<AccountMe | null>(null);
-  const [seller, setSeller] = useState<SellerMe | null>(null);
+  const [seller, setSeller] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -71,7 +123,7 @@ export function Header({
       setProfileLoading(false);
       setProfileError(null);
       setAccount(null);
-      setSeller(null);
+      setSeller(false);
       clearAccountProfile();
       return;
     }
@@ -86,25 +138,9 @@ export function Header({
           if (cancelled) return;
           setAccount(accountMe);
           writeAccountProfile(accountMe);
+          setSeller(hasSellerAccess());
         } catch (e) {
           if (cancelled) return;
-          if (e instanceof ApiHttpError && (e.status === 401 || e.status === 403)) {
-            onAuthChanged();
-            return;
-          }
-          setProfileError(asErrorMessage(e));
-        }
-
-        try {
-          const sellerMe = await getSellerMe();
-          if (cancelled) return;
-          setSeller(sellerMe);
-        } catch (e) {
-          if (cancelled) return;
-          if (e instanceof ApiHttpError && e.status === 404) {
-            setSeller(null);
-            return;
-          }
           if (e instanceof ApiHttpError && (e.status === 401 || e.status === 403)) {
             onAuthChanged();
             return;
@@ -129,7 +165,7 @@ export function Header({
     clearAccountProfile();
     setProfileError(null);
     setAccount(null);
-    setSeller(null);
+    setSeller(false);
     onAuthChanged();
     setMenuOpen(false);
   }
@@ -137,25 +173,14 @@ export function Header({
   async function becomeSeller() {
     if (sellerBusy) return;
     if (seller) {
-      window.alert(`Seller already exists: ${seller.name}`);
-      return;
-    }
-    const name = window.prompt("Seller name");
-    if (name === null) return;
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      window.alert("Seller name is required.");
+      window.alert("Seller already created.");
       return;
     }
     setSellerBusy(true);
     try {
-      await createSeller({ name: trimmedName });
-      try {
-        const sellerMe = await getSellerMe();
-        setSeller(sellerMe);
-      } catch {
-        setSeller(null);
-      }
+      await createSeller();
+      setSeller(hasSellerAccess());
+      onAuthChanged();
       setMenuOpen(false);
       window.alert("You are now a seller.");
     } catch (e) {
@@ -228,11 +253,7 @@ export function Header({
                       <div>{account.email}</div>
                     </div>
                   )}
-                  {seller && (
-                    <div className="px-3 py-2 text-xs text-zinc-600">
-                      Seller: {seller.name}
-                    </div>
-                  )}
+                  {seller ? <div className="px-3 py-2 text-xs text-zinc-600">Seller access enabled</div> : null}
                   {profileError && (
                     <div className="px-3 py-2 text-xs text-red-600">
                       {profileError}
