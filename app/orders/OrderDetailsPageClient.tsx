@@ -17,7 +17,7 @@ import {
   payOrder,
   refundSellerOrder,
 } from "@/lib/api";
-import { readAuth } from "@/lib/storage";
+import { hasSellerAccess, readAuth } from "@/lib/storage";
 import type { OrderPageResponse } from "@/lib/types";
 
 type Role = "buyer" | "seller";
@@ -60,6 +60,7 @@ function formatReviewTimestamp(value: string | null): string | null {
 export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientProps) {
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
 
   const [resolvedOrderId, setResolvedOrderId] = useState<number | null>(null);
@@ -76,6 +77,7 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
+    setIsSeller(hasSellerAccess());
   }, []);
 
   const loadOrder = useCallback(async (orderId: number) => {
@@ -143,6 +145,8 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
     setReviewText("");
     setReviewRating(5);
   }, [resolvedOrderId]);
+
+  const sellerAccessDenied = role === "seller" && isAuthed && !isSeller;
 
   const onPay = useCallback(async () => {
     if (role !== "buyer" || !resolvedOrderId || paying) return;
@@ -238,6 +242,16 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
       />
 
       <section className="relative mx-auto mt-8 max-w-5xl space-y-6 overflow-hidden px-4">
+        {sellerAccessDenied ? (
+          <div className="card p-6 space-y-3">
+            <div className="text-lg font-semibold">Seller access required</div>
+            <div className="text-sm text-zinc-300">This page is available only for seller accounts.</div>
+            <Link href="/" className="btn">
+              Back to marketplace
+            </Link>
+          </div>
+        ) : (
+          <>
         <div className="pointer-events-none absolute left-0 top-[180px] h-72 w-72 rounded-full bg-pink-500/10 blur-[120px]" />
         <div className="pointer-events-none absolute right-4 top-[280px] h-80 w-80 rounded-full bg-violet-500/10 blur-[140px]" />
 
@@ -489,6 +503,8 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
             ) : null}
           </div>
         </div>
+          </>
+        )}
       </section>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthChanged={refreshAuth} />

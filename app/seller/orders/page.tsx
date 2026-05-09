@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { asErrorMessage, getSellerOrders } from "@/lib/api";
-import { readAuth } from "@/lib/storage";
+import { hasSellerAccess, readAuth } from "@/lib/storage";
 import type { OrderResponse } from "@/lib/types";
 
 const PAGE_SIZE = 20;
@@ -38,6 +38,7 @@ export default function SellerOrdersPage() {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("USD");
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [page, setPage] = useState(0);
@@ -48,6 +49,7 @@ export default function SellerOrdersPage() {
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
+    setIsSeller(hasSellerAccess());
   }, []);
 
   const loadOrdersPage = useCallback(async (nextPage: number, mode: "reset" | "append") => {
@@ -91,7 +93,7 @@ export default function SellerOrdersPage() {
   }, [authOpen, isAuthed]);
 
   useEffect(() => {
-    if (!isAuthed) {
+    if (!isAuthed || !isSeller) {
       setOrders([]);
       setPage(0);
       setHasMore(true);
@@ -101,7 +103,7 @@ export default function SellerOrdersPage() {
       return;
     }
     void loadOrdersPage(0, "reset");
-  }, [isAuthed, loadOrdersPage]);
+  }, [isAuthed, isSeller, loadOrdersPage]);
 
   return (
     <main className="min-h-screen pb-16">
@@ -126,6 +128,14 @@ export default function SellerOrdersPage() {
             <button className="btn btn-primary" onClick={() => setAuthOpen(true)}>
               Sign in
             </button>
+          </div>
+        ) : !isSeller ? (
+          <div className="card p-6 space-y-3">
+            <div className="text-lg font-semibold">Seller access required</div>
+            <div className="text-sm text-zinc-300">This page is available only for seller accounts.</div>
+            <Link href="/" className="btn">
+              Back to marketplace
+            </Link>
           </div>
         ) : (
           <div className="card p-6 space-y-3">

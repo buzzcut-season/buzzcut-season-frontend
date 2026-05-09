@@ -8,64 +8,13 @@ import {
   ACCOUNT_PROFILE_UPDATED_EVENT,
   clearAccountProfile,
   clearAuth,
-  readAuth,
+  hasSellerAccess,
   readAccountProfile,
   writeAccountProfile,
 } from "@/lib/storage";
 import type { AccountMe } from "@/lib/types";
 
 const CURRENCIES = ["RUB", "USD", "EUR"] as const;
-
-function parseJwtPayload(token: string): Record<string, unknown> | null {
-  const parts = token.split(".");
-  if (parts.length < 2) return null;
-
-  try {
-    const normalized = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
-    const json = atob(padded);
-    return JSON.parse(json) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
-function payloadHasSellerRole(payload: Record<string, unknown> | null): boolean {
-  if (!payload) return false;
-
-  const values = [
-    payload.role,
-    payload.roles,
-    payload.authorities,
-    payload.permissions,
-    payload.scope,
-    payload.scopes,
-  ];
-
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      if (value.some((entry) => typeof entry === "string" && entry.toUpperCase().includes("SELLER"))) {
-        return true;
-      }
-      continue;
-    }
-
-    if (typeof value === "string") {
-      const parts = value.split(/[,\s]+/).filter(Boolean);
-      if (parts.some((entry) => entry.toUpperCase().includes("SELLER"))) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-function hasSellerAccess(): boolean {
-  const token = readAuth()?.accessToken;
-  if (!token) return false;
-  return payloadHasSellerRole(parseJwtPayload(token));
-}
 
 export function Header({
   onOpenAuth,
@@ -278,14 +227,16 @@ export function Header({
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Favorites
                   </button>
-                  <Link
-                    href="/seller"
-                    className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Seller studio
-                  </Link>
+                  {seller ? (
+                    <Link
+                      href="/seller"
+                      className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Seller studio
+                    </Link>
+                  ) : null}
                   <button
                     className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5 disabled:opacity-60 disabled:cursor-not-allowed"
                     role="menuitem"

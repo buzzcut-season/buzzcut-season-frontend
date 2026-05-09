@@ -19,7 +19,7 @@ import {
   updateDraft,
   uploadFileToPresignedUrl,
 } from "@/lib/api";
-import { readAuth } from "@/lib/storage";
+import { hasSellerAccess, readAuth } from "@/lib/storage";
 import type { CategoryNode, SellerDraft, SellerDraftStatus } from "@/lib/types";
 
 type DraftFormState = {
@@ -108,6 +108,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
   const [currency, setCurrency] = useState<"RUB" | "USD" | "EUR">("USD");
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
@@ -131,6 +132,7 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
 
   const refreshAuth = useCallback(() => {
     setIsAuthed(!!readAuth()?.accessToken);
+    setIsSeller(hasSellerAccess());
   }, []);
 
   const fillForm = useCallback((nextDraft: SellerDraft) => {
@@ -349,6 +351,16 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
             <button className="btn btn-primary" onClick={() => setAuthOpen(true)}>
               Sign in
             </button>
+          </div>
+        ) : !isSeller ? (
+          <div className="card p-6 space-y-3">
+            <div className="text-lg font-semibold">Seller access required</div>
+            <div className="text-sm text-zinc-300">
+              This section is available only for accounts with the seller role.
+            </div>
+            <Link href="/" className="btn">
+              Back to marketplace
+            </Link>
           </div>
         ) : (
           <>
