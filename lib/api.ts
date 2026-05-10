@@ -3,6 +3,7 @@ import type {
   AccountGender,
   AuthenticateRequest,
   AuthenticateResponse,
+  ChatListItem,
   ChatListResponse,
   ChatMessagesResponse,
   CategoryTreeResponse,
@@ -98,6 +99,12 @@ type AccountMeWire = Omit<AccountMe, "birthDate" | "gender"> & {
 
 type OrderListResponseWire = {
   orders?: OrderResponseWire[] | null;
+};
+
+type ChatListResponseWire = {
+  page?: number | null;
+  size?: number | null;
+  messages?: ChatListItem[] | null;
 };
 
 function buildHeaders(init?: RequestInit, accessToken?: string): Headers {
@@ -216,6 +223,14 @@ function normalizeOrderPageResponse(order: OrderPageResponseWire): OrderPageResp
 function normalizeOrderListResponse(response: OrderListResponseWire): OrderListResponse {
   return {
     orders: (response.orders ?? []).map(normalizeOrderResponse),
+  };
+}
+
+function normalizeChatListResponse(response: ChatListResponseWire): ChatListResponse {
+  return {
+    page: response.page ?? 0,
+    size: response.size ?? 20,
+    messages: response.messages ?? [],
   };
 }
 
@@ -469,9 +484,10 @@ export async function getChats(params?: { page?: number; size?: number }): Promi
   const page = params?.page ?? 0;
   const size = params?.size ?? 20;
   const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
-  return request<ChatListResponse>(`/api/v1/chats?${qs}`, {
+  const response = await request<ChatListResponseWire>(`/api/v1/chats?${qs}`, {
     method: "GET",
   });
+  return normalizeChatListResponse(response);
 }
 
 export async function getChatMessages(

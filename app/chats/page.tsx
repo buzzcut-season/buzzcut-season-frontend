@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, MessageSquare } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
@@ -19,7 +19,7 @@ function formatChatTimestamp(value: string): string {
   return new Date(timestamp).toLocaleString();
 }
 
-export default function ChatsPage() {
+function ChatsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authOpen, setAuthOpen] = useState(false);
@@ -233,5 +233,21 @@ export default function ChatsPage() {
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthChanged={refreshAuth} />
     </main>
+  );
+}
+
+export default function ChatsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen pb-16">
+          <section className="mx-auto mt-8 max-w-6xl px-4">
+            <div className="card p-6 text-sm text-zinc-300">Loading chats...</div>
+          </section>
+        </main>
+      }
+    >
+      <ChatsPageContent />
+    </Suspense>
   );
 }
