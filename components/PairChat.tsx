@@ -230,10 +230,6 @@ export function PairChat({
 
   const isSelfChat = currentUserId != null && currentUserId === otherUserId;
 
-  if (!accountLoading && isSelfChat) {
-    return null;
-  }
-
   const loadHistory = useCallback(
     async (beforeMessageId?: number) => {
       if (!chatKey) return;
@@ -476,6 +472,10 @@ export function PairChat({
     },
     [account, chatKey, currentUserId, draft, messages.length],
   );
+
+  if (!accountLoading && isSelfChat) {
+    return null;
+  }
 
   return (
     <section className={`card overflow-hidden p-5 ${className ?? ""}`}>
