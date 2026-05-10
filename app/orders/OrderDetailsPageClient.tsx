@@ -402,10 +402,10 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
               </div>
               {order ? (
                 <div className="mt-4">
-                  {((role === "buyer" ? order.sellerId : order.buyerId) ?? 0) > 0 ? (
+                  {order.chatKey ? (
                     <PairChat
                       isAuthed={isAuthed}
-                      otherUserId={(role === "buyer" ? order.sellerId : order.buyerId) as number}
+                      otherUserId={role === "buyer" ? order.sellerId : order.buyerId}
                       chatKeyOverride={order.chatKey}
                       otherUserLabel={role === "buyer" ? "seller" : "buyer"}
                       title="Direct Chat"
@@ -415,7 +415,7 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
                     />
                   ) : (
                     <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-300">
-                      Chat is unavailable until buyer and seller ids are present in the order response.
+                      Chat is unavailable until chatKey is present in the order response.
                     </div>
                   )}
                   <Link className="btn mt-4 w-full" href={`/product/${order.productId}`}>

@@ -17,7 +17,7 @@ import type { AccountMe, ChatMessage } from "@/lib/types";
 
 type PairChatProps = {
   isAuthed: boolean;
-  otherUserId: number;
+  otherUserId?: number | null;
   chatKeyOverride?: string | null;
   otherUserLabel: string;
   title: string;
