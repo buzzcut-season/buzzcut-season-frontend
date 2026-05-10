@@ -52,6 +52,10 @@ function getApiBase(): string {
   return API_BASE;
 }
 
+export function getApiBaseUrl(): string {
+  return getApiBase();
+}
+
 function asErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   try {
@@ -66,6 +70,8 @@ const REFRESH_PATH = "/api/v1/accounts/refresh";
 type OrderResponseWire = Omit<OrderResponse, "orderId" | "displaySettings"> & {
   id?: number | null;
   orderId?: number | null;
+  buyerId?: number | null;
+  sellerId?: number | null;
   displaySettings?: {
     productName?: string | null;
     coverImage?: string | null;
@@ -185,10 +191,18 @@ function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
   if (orderId == null) {
     throw new Error("Order response does not include orderId");
   }
+  if (order.buyerId == null) {
+    throw new Error("Order response does not include buyerId");
+  }
+  if (order.sellerId == null) {
+    throw new Error("Order response does not include sellerId");
+  }
 
   return {
     ...order,
     orderId,
+    buyerId: order.buyerId,
+    sellerId: order.sellerId,
     displaySettings: {
       productName: order.displaySettings?.productName ?? null,
       coverImage: order.displaySettings?.coverImage ?? null,
@@ -455,30 +469,17 @@ export async function getSellerOrders(params?: { page?: number; size?: number })
   return normalizeOrderListResponse(response);
 }
 
-export async function getOrderChatMessages(
-  orderId: number,
+export async function getChatMessages(
+  chatKey: string,
   params?: { size?: number; beforeMessageId?: number },
 ): Promise<ChatMessagesResponse> {
   const qs = new URLSearchParams();
+  qs.set("chatKey", chatKey);
   qs.set("size", String(params?.size ?? 50));
   if (params?.beforeMessageId != null) {
     qs.set("beforeMessageId", String(params.beforeMessageId));
   }
-  return request<ChatMessagesResponse>(`/api/v1/orders/${orderId}/chat/messages?${qs.toString()}`, {
-    method: "GET",
-  });
-}
-
-export async function getSellerOrderChatMessages(
-  orderId: number,
-  params?: { size?: number; beforeMessageId?: number },
-): Promise<ChatMessagesResponse> {
-  const qs = new URLSearchParams();
-  qs.set("size", String(params?.size ?? 50));
-  if (params?.beforeMessageId != null) {
-    qs.set("beforeMessageId", String(params.beforeMessageId));
-  }
-  return request<ChatMessagesResponse>(`/api/seller/v1/orders/${orderId}/chat/messages?${qs.toString()}`, {
+  return request<ChatMessagesResponse>(`/api/v1/chats?${qs.toString()}`, {
     method: "GET",
   });
 }

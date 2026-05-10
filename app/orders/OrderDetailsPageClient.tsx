@@ -7,6 +7,7 @@ import type { FormEvent } from "react";
 import { Loader2, Star } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
+import { PairChat } from "@/components/PairChat";
 import { RatingStars } from "@/components/RatingStars";
 import {
   asErrorMessage,
@@ -397,16 +398,28 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-pink-300/35 to-transparent" />
               <div className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-zinc-300/80">
                 <Star className="h-4 w-4 text-pink-300" />
-                Order Updates
-              </div>
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-300">
-                Direct buyer-seller chat was removed from this page. Order management and status actions remain available here.
+                Buyer-Seller Chat
               </div>
               {order ? (
-                <Link className="btn mt-4 w-full" href={`/product/${order.productId}`}>
-                  Open product
-                </Link>
-              ) : null}
+                <div className="mt-4">
+                  <PairChat
+                    isAuthed={isAuthed}
+                    otherUserId={role === "buyer" ? order.sellerId : order.buyerId}
+                    otherUserLabel={role === "buyer" ? "seller" : "buyer"}
+                    title="Direct Chat"
+                    emptyTitle="No messages yet"
+                    emptyDescription="This is the same chat used on the product page for this buyer-seller pair."
+                    className="border-0 bg-transparent p-0 ring-0 shadow-none"
+                  />
+                  <Link className="btn mt-4 w-full" href={`/product/${order.productId}`}>
+                    Open product
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-300">
+                  Order details are required to open chat.
+                </div>
+              )}
             </section>
 
             {order?.review ? (

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, ShieldCheck, Star, Store } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
+import { PairChat } from "@/components/PairChat";
 import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { ApiHttpError, asErrorMessage, createOrder, getProductCard } from "@/lib/api";
 import { getPriceForCurrency } from "@/lib/product-prices";
@@ -319,10 +320,19 @@ export default function ProductPage({ params }: PageProps) {
                   <h2 className="text-sm font-semibold">Purchase protection</h2>
                 </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  After payment you can chat in the order page, complete the order, and leave a review.
+                  The same direct chat with the seller is available here and on the matching order page.
                 </p>
               </section>
             </div>
+
+            <PairChat
+              isAuthed={isAuthed}
+              otherUserId={product.sellerId}
+              otherUserLabel={product.seller}
+              title="Chat With Seller"
+              emptyTitle="No messages yet"
+              emptyDescription="The chat opens immediately even before the first message is stored."
+            />
 
             <ProductReviewsSection
               productId={product.id}

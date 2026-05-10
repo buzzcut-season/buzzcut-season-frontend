@@ -185,6 +185,8 @@ export type OrderDisplaySettings = {
 export type OrderResponse = {
   orderId: number;
   productId: number;
+  buyerId: number;
+  sellerId: number;
   price: string;
   currency: string;
   status: OrderStatus;
@@ -204,17 +206,18 @@ export type ChatParticipant = "BUYER" | "SELLER" | string;
 
 export type ChatMessage = {
   id: number;
-  participant: ChatParticipant;
+  clientMessageId: string | null;
+  userId: number;
   name: string;
   body: string;
   createdAt: string;
 };
 
 export type ChatMessagesResponse = {
-  chatId: number;
+  chatKey: string;
   size: number;
   nextCursorMessageId: number | null;
-  messages: ChatMessage[];
+  items: ChatMessage[];
 };
 
 export type Review = {
