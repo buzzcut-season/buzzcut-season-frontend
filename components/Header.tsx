@@ -155,6 +155,11 @@ export function Header({
           <Link href="/" className="btn">
             Home
           </Link>
+          {isAuthed ? (
+            <Link href="/chats" className="btn">
+              Chats
+            </Link>
+          ) : null}
           <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1 shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_10px_20px_rgba(0,0,0,0.35)]">
             {CURRENCIES.map((code) => {
               const active = currency === code;
