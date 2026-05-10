@@ -402,15 +402,21 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
               </div>
               {order ? (
                 <div className="mt-4">
-                  <PairChat
-                    isAuthed={isAuthed}
-                    otherUserId={role === "buyer" ? order.sellerId : order.buyerId}
-                    otherUserLabel={role === "buyer" ? "seller" : "buyer"}
-                    title="Direct Chat"
-                    emptyTitle="No messages yet"
-                    emptyDescription="This is the same chat used on the product page for this buyer-seller pair."
-                    className="border-0 bg-transparent p-0 ring-0 shadow-none"
-                  />
+                  {((role === "buyer" ? order.sellerId : order.buyerId) ?? 0) > 0 ? (
+                    <PairChat
+                      isAuthed={isAuthed}
+                      otherUserId={(role === "buyer" ? order.sellerId : order.buyerId) as number}
+                      otherUserLabel={role === "buyer" ? "seller" : "buyer"}
+                      title="Direct Chat"
+                      emptyTitle="No messages yet"
+                      emptyDescription="This is the same chat used on the product page for this buyer-seller pair."
+                      className="border-0 bg-transparent p-0 ring-0 shadow-none"
+                    />
+                  ) : (
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-300">
+                      Chat is unavailable until buyer and seller ids are present in the order response.
+                    </div>
+                  )}
                   <Link className="btn mt-4 w-full" href={`/product/${order.productId}`}>
                     Open product
                   </Link>

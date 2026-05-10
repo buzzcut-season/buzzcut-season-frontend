@@ -185,8 +185,8 @@ export type OrderDisplaySettings = {
 export type OrderResponse = {
   orderId: number;
   productId: number;
-  buyerId: number;
-  sellerId: number;
+  buyerId: number | null;
+  sellerId: number | null;
   price: string;
   currency: string;
   status: OrderStatus;

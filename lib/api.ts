@@ -191,18 +191,12 @@ function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
   if (orderId == null) {
     throw new Error("Order response does not include orderId");
   }
-  if (order.buyerId == null) {
-    throw new Error("Order response does not include buyerId");
-  }
-  if (order.sellerId == null) {
-    throw new Error("Order response does not include sellerId");
-  }
 
   return {
     ...order,
     orderId,
-    buyerId: order.buyerId,
-    sellerId: order.sellerId,
+    buyerId: order.buyerId ?? null,
+    sellerId: order.sellerId ?? null,
     displaySettings: {
       productName: order.displaySettings?.productName ?? null,
       coverImage: order.displaySettings?.coverImage ?? null,
