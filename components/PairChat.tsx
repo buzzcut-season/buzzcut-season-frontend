@@ -227,10 +227,11 @@ export function PairChat({
     if (chatKeyOverride?.trim()) {
       return chatKeyOverride.trim();
     }
-    if (currentUserId == null || !Number.isInteger(otherUserId) || otherUserId <= 0) {
+    const resolvedOtherUserId = typeof otherUserId === "number" ? otherUserId : null;
+    if (currentUserId == null || resolvedOtherUserId == null || !Number.isInteger(resolvedOtherUserId) || resolvedOtherUserId <= 0) {
       return null;
     }
-    return buildChatKey(currentUserId, otherUserId);
+    return buildChatKey(currentUserId, resolvedOtherUserId);
   }, [chatKeyOverride, currentUserId, otherUserId]);
 
   const loadHistory = useCallback(
