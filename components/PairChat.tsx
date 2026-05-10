@@ -233,8 +233,6 @@ export function PairChat({
     return buildChatKey(currentUserId, otherUserId);
   }, [chatKeyOverride, currentUserId, otherUserId]);
 
-  const isSelfChat = currentUserId != null && currentUserId === otherUserId;
-
   const loadHistory = useCallback(
     async (beforeMessageId?: number) => {
       if (!chatKey) return;
@@ -269,12 +267,12 @@ export function PairChat({
     setSendError(null);
     setSocketError(null);
 
-    if (!chatKey || isSelfChat) return;
+    if (!chatKey) return;
     void loadHistory();
-  }, [chatKey, isSelfChat, loadHistory]);
+  }, [chatKey, loadHistory]);
 
   useEffect(() => {
-    if (!chatKey || isSelfChat || !isAuthed) return;
+    if (!chatKey || !isAuthed) return;
     if (!readAuth()?.accessToken) return;
 
     let cancelled = false;
@@ -403,7 +401,7 @@ export function PairChat({
       socketRef.current = null;
       setSocketState("idle");
     };
-  }, [chatKey, isAuthed, isSelfChat]);
+  }, [chatKey, isAuthed]);
 
   useEffect(() => {
     const element = chatBodyRef.current;
@@ -476,10 +474,6 @@ export function PairChat({
     },
     [account, chatKey, currentUserId, draft, messages.length],
   );
-
-  if (!accountLoading && isSelfChat) {
-    return null;
-  }
 
   return (
     <section className={`card overflow-hidden p-5 ${className ?? ""}`}>
