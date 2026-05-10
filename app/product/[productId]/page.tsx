@@ -109,7 +109,7 @@ export default function ProductPage({ params }: PageProps) {
     return () => {
       mounted = false;
     };
-  }, [params]);
+  }, [isAuthed, params]);
 
   const images = useMemo(() => product?.images ?? [], [product]);
   const selectedPrice = useMemo(() => getPriceForCurrency(product, currency), [product, currency]);
@@ -327,7 +327,7 @@ export default function ProductPage({ params }: PageProps) {
 
             <PairChat
               isAuthed={isAuthed}
-              otherUserId={product.sellerId}
+              chatKeyOverride={product.chatKey}
               otherUserLabel={product.seller}
               title="Chat With Seller"
               emptyTitle="No messages yet"

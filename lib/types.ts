@@ -89,6 +89,7 @@ export type ProductReviewStats = {
 export type ProductCard = {
   id: number;
   sellerId: number;
+  chatKey: string | null;
   name: string;
   description: string;
   seller: string;

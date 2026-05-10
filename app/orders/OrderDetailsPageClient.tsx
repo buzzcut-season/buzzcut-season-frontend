@@ -405,7 +405,6 @@ export function OrderDetailsPageClient({ params, role }: OrderDetailsPageClientP
                   {order.chatKey ? (
                     <PairChat
                       isAuthed={isAuthed}
-                      otherUserId={role === "buyer" ? order.sellerId : order.buyerId}
                       chatKeyOverride={order.chatKey}
                       otherUserLabel={role === "buyer" ? "seller" : "buyer"}
                       title="Direct Chat"

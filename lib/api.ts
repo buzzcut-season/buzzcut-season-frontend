@@ -237,6 +237,7 @@ function normalizeChatListResponse(response: ChatListResponseWire): ChatListResp
 function normalizeProductCardResponse(product: ProductCardWire): ProductCard {
   return {
     ...product,
+    chatKey: product.chatKey ?? null,
     ratingAvg: product.ratingAvg ?? null,
     reviewsCount: product.reviewsCount ?? 0,
   };

@@ -104,6 +104,7 @@ function ChatsPageContent() {
 
   const activeUserId = selectedUserId ?? selectedChat?.userId ?? null;
   const activeUserLabel = selectedNickname ?? selectedChat?.nickname ?? "user";
+  const activeChatKey = selectedChat?.chatKey ?? null;
 
   return (
     <main className="min-h-screen pb-16">
@@ -213,7 +214,7 @@ function ChatsPageContent() {
             {activeUserId != null ? (
               <PairChat
                 isAuthed={isAuthed}
-                otherUserId={activeUserId}
+                chatKeyOverride={activeChatKey}
                 otherUserLabel={activeUserLabel}
                 title="Direct Chat"
                 emptyTitle="No messages yet"

@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { AlertCircle, Loader2, Send, Wifi, WifiOff } from "lucide-react";
 import { ApiHttpError, asErrorMessage, getAccountMe, getChatMessages, refreshAccessToken } from "@/lib/api";
-import { buildChatKey, getChatsWebSocketUrl } from "@/lib/chat";
+import { getChatsWebSocketUrl } from "@/lib/chat";
 import {
   ACCOUNT_PROFILE_UPDATED_EVENT,
   clearAccountProfile,
@@ -17,7 +17,6 @@ import type { AccountMe, ChatMessage } from "@/lib/types";
 
 type PairChatProps = {
   isAuthed: boolean;
-  otherUserId?: number | null;
   chatKeyOverride?: string | null;
   otherUserLabel: string;
   title: string;
@@ -139,7 +138,6 @@ function formatMessageTimestamp(value: string): string {
 
 export function PairChat({
   isAuthed,
-  otherUserId,
   chatKeyOverride,
   otherUserLabel,
   title,
@@ -223,16 +221,7 @@ export function PairChat({
   }, [isAuthed]);
 
   const currentUserId = account?.id ?? null;
-  const chatKey = useMemo(() => {
-    if (chatKeyOverride?.trim()) {
-      return chatKeyOverride.trim();
-    }
-    const resolvedOtherUserId = typeof otherUserId === "number" ? otherUserId : null;
-    if (currentUserId == null || resolvedOtherUserId == null || !Number.isInteger(resolvedOtherUserId) || resolvedOtherUserId <= 0) {
-      return null;
-    }
-    return buildChatKey(currentUserId, resolvedOtherUserId);
-  }, [chatKeyOverride, currentUserId, otherUserId]);
+  const chatKey = chatKeyOverride?.trim() || null;
 
   const loadHistory = useCallback(
     async (beforeMessageId?: number) => {
@@ -545,6 +534,13 @@ export function PairChat({
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Loading history...
                 </div>
+              ) : !chatKey ? (
+                <div className="grid min-h-[220px] place-items-center px-4 text-center text-sm text-zinc-400">
+                  <div>
+                    <div className="font-medium text-zinc-200">Chat unavailable</div>
+                    <div className="mt-2">Chat key is not available for this page.</div>
+                  </div>
+                </div>
               ) : messages.length === 0 ? (
                 <div className="grid min-h-[220px] place-items-center px-4 text-center text-sm text-zinc-400">
                   <div>
@@ -597,7 +593,7 @@ export function PairChat({
                 <button
                   className="btn btn-primary self-end"
                   type="submit"
-                  disabled={!draft.trim() || socketState !== "connected"}
+                  disabled={!chatKey || !draft.trim() || socketState !== "connected"}
                 >
                   <Send className="h-4 w-4" />
                   Send
