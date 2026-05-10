@@ -3,6 +3,7 @@ import type {
   AccountGender,
   AuthenticateRequest,
   AuthenticateResponse,
+  ChatListResponse,
   ChatMessagesResponse,
   CategoryTreeResponse,
   ConfirmDraftImageRequest,
@@ -195,6 +196,7 @@ function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
   return {
     ...order,
     orderId,
+    chatKey: order.chatKey ?? null,
     buyerId: order.buyerId ?? null,
     sellerId: order.sellerId ?? null,
     displaySettings: {
@@ -463,17 +465,25 @@ export async function getSellerOrders(params?: { page?: number; size?: number })
   return normalizeOrderListResponse(response);
 }
 
+export async function getChats(params?: { page?: number; size?: number }): Promise<ChatListResponse> {
+  const page = params?.page ?? 0;
+  const size = params?.size ?? 20;
+  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString();
+  return request<ChatListResponse>(`/api/v1/chats?${qs}`, {
+    method: "GET",
+  });
+}
+
 export async function getChatMessages(
   chatKey: string,
   params?: { size?: number; beforeMessageId?: number },
 ): Promise<ChatMessagesResponse> {
   const qs = new URLSearchParams();
-  qs.set("chatKey", chatKey);
   qs.set("size", String(params?.size ?? 50));
   if (params?.beforeMessageId != null) {
     qs.set("beforeMessageId", String(params.beforeMessageId));
   }
-  return request<ChatMessagesResponse>(`/api/v1/chats?${qs.toString()}`, {
+  return request<ChatMessagesResponse>(`/api/v1/chats/${encodeURIComponent(chatKey)}/messages?${qs.toString()}`, {
     method: "GET",
   });
 }

@@ -224,6 +224,14 @@ export function Header({
                   >
                     Orders
                   </Link>
+                  <Link
+                    href="/chats"
+                    className="block w-full rounded-xl px-3 py-2 text-left hover:bg-black/5"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Chats
+                  </Link>
                   <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-black/5" role="menuitem">
                     Favorites
                   </button>

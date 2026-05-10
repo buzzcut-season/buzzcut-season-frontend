@@ -18,6 +18,7 @@ import type { AccountMe, ChatMessage } from "@/lib/types";
 type PairChatProps = {
   isAuthed: boolean;
   otherUserId: number;
+  chatKeyOverride?: string | null;
   otherUserLabel: string;
   title: string;
   emptyTitle: string;
@@ -139,6 +140,7 @@ function formatMessageTimestamp(value: string): string {
 export function PairChat({
   isAuthed,
   otherUserId,
+  chatKeyOverride,
   otherUserLabel,
   title,
   emptyTitle,
@@ -222,11 +224,14 @@ export function PairChat({
 
   const currentUserId = account?.id ?? null;
   const chatKey = useMemo(() => {
+    if (chatKeyOverride?.trim()) {
+      return chatKeyOverride.trim();
+    }
     if (currentUserId == null || !Number.isInteger(otherUserId) || otherUserId <= 0) {
       return null;
     }
     return buildChatKey(currentUserId, otherUserId);
-  }, [currentUserId, otherUserId]);
+  }, [chatKeyOverride, currentUserId, otherUserId]);
 
   const isSelfChat = currentUserId != null && currentUserId === otherUserId;
 
@@ -441,11 +446,10 @@ export function PairChat({
           buildFrame(
             "SEND",
             {
-              destination: "/app/ws/chats/send",
+              destination: `/app/ws/chats/${chatKey}/send`,
               "content-type": "application/json",
             },
             JSON.stringify({
-              chatKey,
               clientMessageId,
               body,
             }),
