@@ -166,11 +166,6 @@ export type ConfirmDraftImageRequest = {
   token: string;
 };
 
-export type PublishDraftResponse = {
-  draftId: number;
-  productId: number;
-};
-
 export type OrderStatus = "CREATED" | "PAID" | "COMPLETED" | "REFUNDED" | string;
 
 export type CreateOrderRequest = {

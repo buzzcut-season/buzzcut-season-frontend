@@ -317,8 +317,8 @@ export function SellerPageClient({ initialDraftId = null }: SellerPageClientProp
     setError(null);
     setMessage(null);
     try {
-      const res = await publishDraft(draftId);
-      setMessage(`Published. Product ID: ${res.productId}`);
+      await publishDraft(draftId);
+      setMessage("Published");
       await refreshDraft(draftId);
       router.push("/");
     } catch (e) {

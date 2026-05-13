@@ -19,7 +19,6 @@ import type {
   PresignDraftImageResponse,
   ProductCard,
   ProductReviewsResponse,
-  PublishDraftResponse,
   ProductFeedResponse,
   ProductFeedItem,
   RefreshTokenRequest,
@@ -192,6 +191,37 @@ async function requestVoid(path: string, init?: RequestInit): Promise<void> {
     const text = await res.text().catch(() => "");
     throw new ApiHttpError(res.status, text, res.statusText);
   }
+}
+
+async function requestOk(path: string, init?: RequestInit): Promise<void> {
+  const auth = readAuth();
+  const execute = (accessToken?: string) =>
+    fetch(`${getApiBase()}${path}`, {
+      ...init,
+      headers: buildHeaders(init, accessToken),
+    });
+
+  const res = await execute(auth?.accessToken);
+
+  if (res.status === 200) {
+    return;
+  }
+
+  if ((res.status === 401 || res.status === 403) && path !== REFRESH_PATH) {
+    const nextAccessToken = await refreshAccessToken();
+    if (nextAccessToken) {
+      const retryRes = await execute(nextAccessToken);
+      if (retryRes.status === 200) {
+        return;
+      }
+      const retryText = await retryRes.text().catch(() => "");
+      throw new ApiHttpError(retryRes.status, retryText, retryRes.statusText);
+    }
+    clearAuth();
+  }
+
+  const text = await res.text().catch(() => "");
+  throw new ApiHttpError(res.status, text, res.statusText);
 }
 
 function normalizeOrderResponse(order: OrderResponseWire): OrderResponse {
@@ -403,8 +433,8 @@ export async function deleteDraftImage(draftId: number, position: number): Promi
   });
 }
 
-export async function publishDraft(draftId: number): Promise<PublishDraftResponse> {
-  return request<PublishDraftResponse>(`/api/seller/v1/drafts/${draftId}/publish`, { method: "POST" });
+export async function publishDraft(draftId: number): Promise<void> {
+  return requestOk(`/api/seller/v1/drafts/${draftId}/publish`, { method: "POST" });
 }
 
 export async function cancelDraft(draftId: number): Promise<void> {
